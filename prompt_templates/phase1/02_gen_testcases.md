@@ -275,6 +275,7 @@ Tạo coverage map nội bộ trước khi viết testcase. Map phải bao gồm
 - Permission/role.
 - Error state và rollback.
 - Cross-system sync side-effect.
+- Vùng ảnh hưởng ngoài scope: bề mặt dùng chung mà story đụng tới (data/entity/field, endpoint, component/rule, status/enum, calc/report, permission, job/event) và feature khác phụ thuộc (xem mục 17).
 
 Mỗi rule/AC trong scope phải có ít nhất 1 testcase trace được qua tên case hoặc nội dung expected.
 Nếu không thể cover rule nào vì thiếu requirement/data/API, vẫn ghi vào phần Coverage Gap sau bảng.
@@ -469,7 +470,33 @@ Kit thiên functional; nhóm này CHỈ sinh khi có ngưỡng/tải trong scope
 
 TC chỉ đo được thủ công/cần tool tải riêng (k6/JMeter) → đánh dấu `Manual-only`/đề xuất tool trong Coverage Gaps, không bỏ.
 
-## 17. Self-check vét cạn biên (BẮT BUỘC trước khi kết thúc)
+## 17. Change Impact / Regression Ripple Coverage (BẮT BUỘC khi story thêm/sửa/xoá làm thay đổi thứ dùng chung)
+
+Bắt lỗi **"sửa 1 feature con → vỡ feature khác"** — thứ requirement của story KHÔNG mô tả nhưng hay gây incident. TÁCH RIÊNG khỏi Side-effect (mục 9 — output của chính action) và Data Consistency (mục 13 — trong scope).
+
+**Bước 1 — Bề mặt dùng chung mà thay đổi ĐỤNG tới.** Nếu thay đổi cô lập (không đụng gì chung) → ghi `N/A: no shared surface` ở Coverage Gaps, KHÔNG sinh bừa. Soi các bề mặt:
+- Data/entity/field chung (thêm field, đổi kiểu/default, migration).
+- Endpoint/API chung (đổi payload/response/status code).
+- Component/validation/business rule/util dùng lại.
+- Status/enum chung (thêm/đổi giá trị).
+- Calculation/aggregate/report chung nguồn.
+- Permission/role/guard chung.
+- Job/trigger/event/queue/cron chung.
+
+**Bước 2 — Map feature KHÁC phụ thuộc bề mặt đó** (suy từ code/testcase cũ/requirement/coverage map). Cái không suy được → flag QA (Bước 3).
+
+**Bước 3 — Sinh regression cho feature bị ảnh hưởng (SMOKE, không re-test full):**
+- **Smoke flow chính**: mỗi feature bị ảnh hưởng có ≥1 TC xác nhận flow chính vẫn đúng sau thay đổi (vd thêm field vào entity → list/detail/export/search của feature khác vẫn đúng, không lỗi, không lệch cột).
+- **Backward-compat**: bản ghi/dữ liệu CŨ (tạo trước thay đổi) vẫn hiển thị/xử lý đúng.
+- **Contract**: consumer khác của endpoint không vỡ (field mới optional; KHÔNG đổi kiểu/bỏ field cũ mà không kiểm).
+- **Shared rule/calc**: đổi validation/công thức chung → form/flow/report khác dùng lại vẫn đúng theo rule mới, không bị đổi ngoài ý muốn.
+
+**Nguyên tắc:**
+- **Theo tỉ lệ**: chỉ ripple khi thật sự đụng bề mặt chung; regression là SMOKE, KHÔNG nhân full-suite cho mọi feature.
+- **Flag, không bịa**: feature nghi ảnh hưởng mà thiếu code/spec/testcase cũ để xác minh → ghi `Nghi ảnh hưởng — QA confirm` vào Coverage Gaps; KHÔNG dựng impact ảo, KHÔNG im lặng bỏ qua.
+- Mỗi regression case trace rõ: `đụng <bề mặt chung> → ảnh hưởng <feature>`.
+
+## 18. Self-check vét cạn biên (BẮT BUỘC trước khi kết thúc)
 Tự rà và ghi vào `reports/phase1-summary.md` (Coverage Gaps) nếu thiếu:
 - [ ] Mỗi input đã đủ EP + BVA (min-1/min/max/max+1), không gộp biên vào 1 TC.
 - [ ] Mỗi màn list/filter có dynamic data đã test theo count + biên ngày/tháng/năm nhuận.
@@ -484,8 +511,9 @@ Tự rà và ghi vào `reports/phase1-summary.md` (Coverage Gaps) nếu thiếu:
 - [ ] Mỗi field trống/`-`/`N/A`/`0` nghi ngờ có TC đối chiếu response BE (phân biệt `null`/`""`/`[]`/thiếu key/`0`), FK resolve đúng tên, pagination `total` khớp — không lấy oracle từ build (mục 14).
 - [ ] Mỗi endpoint có id resource có TC IDOR; mỗi chức năng theo role có TC privilege bypass BE; input nhạy cảm có TC injection/XSS stored; body create/update có TC mass-assignment; response không lộ field nhạy cảm (mục 15).
 - [ ] Nếu có ngưỡng SLA/tải trong scope: có TC đo response time so ngưỡng, large dataset, concurrent — kèm nguồn ngưỡng; không có ngưỡng thì `N/A + lý do` (mục 16).
+- [ ] Nếu story đụng bề mặt dùng chung (data/endpoint/component/rule/status/permission/job): mỗi feature khác bị ảnh hưởng có ≥1 regression smoke + backward-compat; feature nghi ảnh hưởng mà không tự xác minh được đã flag `QA confirm`. Thay đổi cô lập → ghi `N/A: no shared surface` (mục 17).
 
-Nếu một dimension (mục 7-16) không áp dụng cho scope, ghi rõ `N/A + lý do` trong Coverage Gaps thay vì bỏ qua im lặng.
+Nếu một dimension (mục 7-17) không áp dụng cho scope, ghi rõ `N/A + lý do` trong Coverage Gaps thay vì bỏ qua im lặng.
 
 ---
 

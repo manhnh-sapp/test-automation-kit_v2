@@ -18,6 +18,7 @@ Chuyển Jira/Confluence/Figma/Swagger/local artifact thành requirement summary
 | Risk | Phân loại rule/gap theo `Critical`, `High`, `Medium`, `Low`. |
 | Setup input | Từ Swagger/API spec, xác định endpoint/payload có thể dùng để setup precondition (input cho Setup Strategy contract của testcase). |
 | Question | Ghi open question khi tài liệu mâu thuẫn hoặc thiếu expected result. |
+| Impact/Affected area | Nhận diện "bề mặt dùng chung" story đụng tới (data/entity/field, endpoint, component/rule, status/enum, calc/report, permission, job/event) và feature khác phụ thuộc — input cho Change Impact / Regression Ripple (mục 17); cái không suy được → flag "QA confirm". |
 
 ## Inputs
 
@@ -54,4 +55,5 @@ Chuyển Jira/Confluence/Figma/Swagger/local artifact thành requirement summary
 
 - Paste toàn bộ raw Confluence/Figma/Swagger vào chat.
 - Bỏ qua permission/error/rollback/API side-effect trong coverage input.
+- Bỏ qua vùng ảnh hưởng ngoài scope khi story đụng data/endpoint/component/rule/status/permission dùng chung (change impact — mục 17).
 - Coi số lượng testcase cao là coverage tốt nếu thiếu core/high-risk rule.
