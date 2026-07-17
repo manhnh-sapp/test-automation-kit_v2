@@ -1,0 +1,139 @@
+# Compiled class files
+*.class
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Logs
+*.log
+logs/
+Log/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# VS Code
+.vscode/
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+# Avoid ignoring the Maven wrapper jar
+!/.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Selenium / Appium logs
+chromedriver.log
+geckodriver.log
+appium.log
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Reports (TestNG, Allure, ExtentReports)
+test-output/
+allure-results/
+allure-report/
+ExtentReports/
+reports/
+Reports/
+ExportData/
+
+# Agent / AI local files
+.gemini/
+brain/
+artifacts/
+.agent/logs/
+.agent/tmp/
+.agent/config/.assignee_cache.json
+
+# Temp data/files
+.playwright-mcp/
+.selenium-mcp/
+.appium-mcp/
+
+# Environment & credentials
+.env
+.env.local
+.env.*.local
+.env.bak*
+**/.env
+**/.env.local
+**/.env.*.local
+**/.env.bak*
+.agent/config/*.local.md
+
+# Per-project run profiles (chứa credential riêng từng dự án) — không commit
+profiles/**/task.env
+
+# Node modules
+node_modules/
+
+# Office temp/lock files
+~$*.xlsx
+~$*.xls
+~$*.docx
+
+# Google Service Account (ignore both naming conventions)
+service_account.json
+service-account.json
+
+# Google OAuth (kit login) — client secret + token, KHÔNG commit
+**/oauth-credentials.json
+**/token.json
+
+# One-off operational backups (chứa accountId/tên nội bộ)
+scripts/integrations/jira/unassign_tests_backup.json
+**/*_backup.json
+**/*.BACKUP.md
+
+# Figma raw node dump quá lớn (>100MB vượt giới hạn GitLab) — artifact tái tạo được
+outputs/lms-operations-automation/tasks/SAPP-24395/requirements/figma/figma_node_6-5.json
+.claude/
+CLAUDE.md
+
+# Task outputs — dữ liệu chạy per-task, KHÔNG commit; chỉ giữ khung outputs/
+/outputs/*
+!/outputs/.gitkeep
+
+# Báo cáo AI Agent (deck pptx/pdf) — bản trình bày, KHÔNG commit vào kit
+/AI-Agent-Activity-Report.*

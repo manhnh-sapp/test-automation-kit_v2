@@ -1,0 +1,33 @@
+{
+  "name": "test-automation-kit",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:fe": "playwright test tests/fe",
+    "test:api": "playwright test tests/api",
+    "profile:create": "node scripts/utils/create_profile.js",
+    "test:task": "node scripts/utils/run_playwright_task.js",
+    "test:task:fe": "node scripts/utils/run_playwright_task.js --suite fe",
+    "test:task:api": "node scripts/utils/run_playwright_task.js --suite api",
+    "report": "node scripts/show_report.js",
+    "integration:check": "node scripts/integrations/jira/check_connection.js",
+    "integration:check:live": "node scripts/integrations/jira/check_connection.js --live",
+    "jira:testcase-publish": "node scripts/integrations/jira/publish_testcases.js",
+    "jira:testcase-publish:dry-run": "node scripts/integrations/jira/publish_testcases.js --dry-run",
+    "jira:testcase-cleanup": "node scripts/integrations/jira/cleanup_xray_tests.js",
+    "jira:testcase-cleanup:dry-run": "node scripts/integrations/jira/cleanup_xray_tests.js --dry-run",
+    "jira:bug-report": "node scripts/integrations/jira/bug_reporter.js",
+    "jira:bug-report:dry-run": "node scripts/integrations/jira/bug_reporter.js --dry-run"
+  },
+  "dependencies": {
+    "axios": "1.17.0",
+    "exceljs": "^3.4.0",
+    "form-data": "^4.0.6",
+    "googleapis": "^150.0.1",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/pg": "^8.20.0"
+  }
+}
