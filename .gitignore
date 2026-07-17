@@ -126,8 +126,7 @@ scripts/integrations/jira/unassign_tests_backup.json
 **/*_backup.json
 **/*.BACKUP.md
 
-# Figma raw node dump quá lớn (>100MB vượt giới hạn GitLab) — artifact tái tạo được
-outputs/lms-operations-automation/tasks/SAPP-24395/requirements/figma/figma_node_6-5.json
+# Claude Code local files
 .claude/
 CLAUDE.md
 
