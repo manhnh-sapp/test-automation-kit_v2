@@ -12,11 +12,8 @@ stages:
 static-check:
   stage: static
   image: node:18
-  cache:
-    key: { files: [package-lock.json] }
-    paths: [.npm/]
   script:
-    - npm ci --cache .npm --prefer-offline
+    - npm ci --prefer-offline --no-audit --no-fund
     - find scripts -name '*.js' -print0 | xargs -0 -n1 node --check
     - find scripts -name '*.mjs' -print0 | xargs -0 -n1 node --check
     - node -e "['knowledge/index.json','.agent/config/risk_model.example.json','.agent/config/dashboard.branding.example.json'].forEach(f=>{JSON.parse(require('fs').readFileSync(f,'utf8'));console.log('JSON OK',f)})"
@@ -30,7 +27,7 @@ integration-check:
   image: node:18
   when: manual
   script:
-    - npm ci --cache .npm --prefer-offline
+    - npm ci --prefer-offline --no-audit --no-fund
     - npm run integration:check:live
 
 # ---- Live regression (MANUAL hoặc scheduled — KHÔNG mỗi push; hit UAT) ----
@@ -48,7 +45,7 @@ regression:
     TASK_KEY: "CI-REGRESSION"
     RUN_ID: "ci-$CI_PIPELINE_ID-$CI_NODE_INDEX"
   script:
-    - npm ci --cache .npm --prefer-offline
+    - npm ci --prefer-offline --no-audit --no-fund
     - npx playwright install chromium webkit
     - npx playwright test --shard=$CI_NODE_INDEX/$CI_NODE_TOTAL --reporter=blob --pass-with-no-tests
   artifacts:
@@ -69,7 +66,7 @@ merge-report:
     - job: regression
       artifacts: true
   script:
-    - npm ci --cache .npm --prefer-offline
+    - npm ci --prefer-offline --no-audit --no-fund
     - npx playwright merge-reports --reporter=html blob-report/ || echo "no blob to merge"
   artifacts:
     when: always
