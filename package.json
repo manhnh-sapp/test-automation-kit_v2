@@ -11,6 +11,7 @@
     "test:task:api": "node scripts/utils/run_playwright_task.js --suite api",
     "report": "node scripts/show_report.js",
     "dashboard": "node scripts/qa/dashboard_generate.js",
+    "accessibility": "node scripts/qa/accessibility_check.js",
     "integration:check": "node scripts/integrations/jira/check_connection.js",
     "integration:check:live": "node scripts/integrations/jira/check_connection.js --live",
     "jira:testcase-publish": "node scripts/integrations/jira/publish_testcases.js",
@@ -21,6 +22,7 @@
     "jira:bug-report:dry-run": "node scripts/integrations/jira/bug_reporter.js --dry-run"
   },
   "dependencies": {
+    "axe-core": "^4.12.1",
     "axios": "1.17.0",
     "exceljs": "^3.4.0",
     "form-data": "^4.0.6",
