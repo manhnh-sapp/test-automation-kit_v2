@@ -108,6 +108,9 @@ profiles/**/task.env
 # Node modules
 node_modules/
 
+# GitLab Runner config (chứa token — KHÔNG commit; runner đặt ở C:\GitLab-Runner)
+config.toml
+
 # Office temp/lock files
 ~$*.xlsx
 ~$*.xls
