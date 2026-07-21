@@ -94,6 +94,23 @@ Bất kỳ field/ô/cột nào: **trống**, `-`, `N/A`, `0`, `--:--`, `undefine
 ## Responsive (khi requirement/design có đề cập)
 Chạy lại màn ở nhiều viewport (mobile 375 / tablet 768 / desktop ≥1440): kiểm reflow, ẩn-hiện đúng, không overflow ngang, không mất nội dung/nút, không đè chồng — qua `boundingBox()` / `getComputedStyle` + screenshot mỗi breakpoint. Kiểm **hiện diện & không tràn**, KHÔNG so toạ độ tuyệt đối.
 
+## Mobile-web behavior (thiết bị thật, KHÔNG chỉ viewport hẹp)
+Viewport 375 chỉ là desktop thu nhỏ — KHÔNG có touch/UA/isMobile nên bỏ lọt hành vi mobile-only. Khi scope có mobile web, **emulate thiết bị thật** trong script task-scoped:
+
+```js
+const { chromium, devices } = require('@playwright/test');
+const ctx = await browser.newContext({ ...devices['iPhone 13'] }); // có hasTouch/isMobile/userAgent
+const page = await ctx.newPage();
+```
+(Chạy suite `tests/mobile-web/` thì đã có sẵn qua project `iphone-13`/`pixel-7` trong `playwright.config.js` — `npm run test:mobile-web`.)
+
+Kiểm khi execute:
+- **Touch target ≥ 44px**: `boundingBox()` của nút/link bấm được, `Math.min(w,h) >= 44`.
+- **Cử chỉ cảm ứng**: dùng `.tap()` (không phải `.click()`), swipe/scroll; hamburger/bottom-sheet/drawer mở đúng.
+- **Orientation**: đổi `viewport` portrait ↔ landscape, kiểm reflow không mất nút/nội dung.
+- **Mạng yếu/offline**: `context.setOffline(true)` (offline) hoặc CDP `Network.emulateNetworkConditions` (slow-3G, chỉ chromium) → báo lỗi, không crash, không tạo bản ghi mồ côi (bắc cầu Resilience).
+- Ghi rõ thiết bị đã test trong Actual; evidence là screenshot ở device emulation.
+
 ## Kỷ luật
 - KHÔNG kết luận PASS/FAIL cho case có giá trị đáng ngờ nếu CHƯA đối chiếu response.
 - Response chỉ để **chẩn đoán/phân loại**; **evidence Jira vẫn phải là ẢNH màn UI** hiển thị giá trị đó. Cần chứng minh data BE → render **visual evidence page** hiển thị response đã redact rồi screenshot, KHÔNG đính file JSON thô (theo Evidence rule bên dưới).

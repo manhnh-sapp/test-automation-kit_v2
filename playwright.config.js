@@ -1,4 +1,4 @@
-const { defineConfig } = require('@playwright/test');
+const { defineConfig, devices } = require('@playwright/test');
 const {
   getProjectOutputDir,
   getRunId,
@@ -29,4 +29,25 @@ module.exports = defineConfig({
     video: process.env.PW_VIDEO || 'off',
     trace: process.env.PW_TRACE || 'off',
   },
+  // Desktop chạy toàn bộ tests/ trừ tests/mobile-web; mobile-web chạy trên thiết bị thật (touch/UA/isMobile).
+  // Không để project mobile phủ toàn bộ suite (tránh nhân 3 lần). Task-scoped scripts (automation/*.js)
+  // KHÔNG dùng projects này — chúng tự emulate qua browser.newContext({ ...devices[...] }), xem
+  // prompt_templates/phase2/04_execute_fe_playwright.md.
+  projects: [
+    {
+      name: 'chromium-desktop',
+      testIgnore: '**/mobile-web/**',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'iphone-13',
+      testDir: './tests/mobile-web',
+      use: { ...devices['iPhone 13'] },
+    },
+    {
+      name: 'pixel-7',
+      testDir: './tests/mobile-web',
+      use: { ...devices['Pixel 7'] },
+    },
+  ],
 });

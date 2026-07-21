@@ -341,6 +341,13 @@ Mỗi màn hình trong scope phải có testcase cho các nhóm sau nếu applic
 - Create/Edit/Delete/Cancel/Confirm.
 - Modal/toast/validation message.
 - Responsive hoặc layout critical nếu requirement/design có đề cập.
+- **Mobile-web behavior (nếu scope có mobile web/responsive)** — KHÁC "responsive viewport" thuần: khi app có hành vi riêng trên mobile thật (touch/UA/isMobile), sinh case cho:
+  - **Touch target ≥ 44px** (Apple HIG; Google Material 48dp) cho nút/link bấm được — bắc cầu accessibility (`scripts/qa/accessibility_check.js`).
+  - **Cử chỉ cảm ứng**: tap (không phải click), swipe, scroll động, pull-to-refresh nếu có.
+  - **Thành phần mobile-only**: hamburger menu, bottom sheet, drawer — hiện/ẩn đúng so desktop.
+  - **Orientation**: portrait ↔ landscape reflow đúng, không mất nội dung/nút.
+  - **Mạng yếu/offline**: slow-3G / offline giữa chừng → báo lỗi, không crash, không tạo bản ghi mồ côi (bắc cầu mục 8 Resilience).
+  - Ghi rõ thiết bị mục tiêu (vd iPhone 13 / Pixel 7). Không áp dụng → `N/A + lý do`.
 - Design/Visual compliance: đối chiếu token thiết kế (màu, font, border-radius, spacing, kích thước, thứ tự/alignment button) với Figma nếu task có design — chi tiết ở mục 11.
 
 ## 5. API Coverage Checklist
@@ -525,6 +532,7 @@ Tự rà và ghi vào `reports/phase1-summary.md` (Coverage Gaps) nếu thiếu:
 - [ ] Mỗi entity có status đã sinh đủ ma trận status x action (+ no-op edit, + idempotent repeat).
 - [ ] Mỗi computed field (deadline/approver/naming/mapping) có TC kiểm derivation + 1 biên.
 - [ ] Nếu có Figma: mỗi component chính có TC design compliance (màu/font/radius/spacing/kích thước/alignment) đối chiếu token thiết kế.
+- [ ] Nếu scope có mobile web: có TC mobile-web behavior (touch target ≥44px, cử chỉ tap/swipe, hamburger/bottom-sheet, orientation, offline/slow-3G) trên thiết bị thật; không áp dụng → `N/A + lý do` (mục 4).
 - [ ] Mỗi màn có bảng/field: đã có case đối chiếu **tên cột (exact)**, **format từng field**, **số cột + thứ tự + đủ tên**, **field bắt buộc**, **empty-state/label/placeholder** — và mọi expected hiển thị được **trích từ tài liệu, KHÔNG từ build** (mục 12).
 - [ ] Mỗi giá trị được TÍNH/tổng/đếm/sort có TC verify bằng **con số cụ thể tự tính** + 1 biên làm tròn; mỗi dữ liệu hiển thị ≥2 nơi có TC so khớp; mỗi mutation có TC so **delta** trước/sau (mục 13).
 - [ ] Mỗi field trống/`-`/`N/A`/`0` nghi ngờ có TC đối chiếu response BE (phân biệt `null`/`""`/`[]`/thiếu key/`0`), FK resolve đúng tên, pagination `total` khớp — không lấy oracle từ build (mục 14).

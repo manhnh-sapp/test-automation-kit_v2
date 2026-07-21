@@ -5,6 +5,7 @@
     "test": "playwright test",
     "test:fe": "playwright test tests/fe",
     "test:api": "playwright test tests/api",
+    "test:mobile-web": "playwright test tests/mobile-web",
     "profile:create": "node scripts/utils/create_profile.js",
     "test:task": "node scripts/utils/run_playwright_task.js",
     "test:task:fe": "node scripts/utils/run_playwright_task.js --suite fe",
