@@ -200,6 +200,16 @@ Jira bug gate khác với Jira testcase publish. Jira testcase publish diễn ra
 - Jira evidence chỉ dùng ảnh hoặc video khi log/upload bug.
 - Không upload `.md`, `.txt`, `.log`, `.json`, `trace.zip` hoặc execution summary làm Jira evidence trừ khi user yêu cầu riêng.
 
+### Executable QA capabilities (autonomy & safety)
+
+Các năng lực chạy thật trong `scripts/qa/` + `exploratory/` phải khai rõ mức tự chủ và tuân ràng buộc an toàn:
+
+- **Autonomy Gate**: Suggest-only (learning_recorder, risk_score, git_impact, scope_planner) · threshold-gated (locator healing `LOCATOR_HEAL=1`, perf advisory, risk_gate `--enforce`) · never-auto (exploratory, security_check, load_check — chỉ chạy khi user yêu cầu tường minh).
+- **Non-destructive & non-prod**: `security_check` chỉ GET/read-only + `--confirm-nonprod`; `load_check` non-prod + cap + `--confirm-nonprod`; fuzzing/exploit/brute-force/ZAP là Manual-only opt-in có phê duyệt người. TUYỆT ĐỐI không chạy trên production.
+- **Mask PII/secret** trong mọi report (security/knowledge/dashboard); không ghi credential/PII khách hàng.
+- **Learning data chỉ ghi fact đã qua gate** (bug đã qua Jira gate); band/risk máy chấm luôn cho phép QA override.
+- **Không thêm dependency nặng**: axe-core (npm) đủ cho a11y; k6 là binary ngoài (Docker/PATH, không vào deps), thiếu → skip sạch.
+
 ## Workflow
 
 ```text

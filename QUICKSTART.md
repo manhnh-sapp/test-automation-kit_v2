@@ -12,6 +12,8 @@
 | ✅ | Token/quyền truy cập Jira, Confluence, Figma nếu Phase 1 cần fetch tài liệu. |
 | ✅ | Credential test cho app/API trong môi trường dev/staging. |
 | ✅ | MCP config cho `atlassian`, `figma`, `playwright` nếu dùng AI Agent tích hợp MCP. |
+| ➕ | (Optional) Docker hoặc k6 — chỉ cần khi chạy **load test Loại B** (`npm run load`); thiếu thì lệnh tự skip sạch. |
+| ➕ | (Optional) 2 tài khoản test `OPS_USERNAME_LOW/HIGH` trong `task.env` — cho ma trận authz/IDOR của `npm run security`. |
 | ❌ | DB credential/connection string không cần và không dùng trong workflow chuẩn. |
 
 ## Setup
@@ -216,6 +218,23 @@ Chỉ Re-run bug/case liên quan, không đồng bộ tài liệu mới trong b�
 | Execution results | `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/test-results/execution-results.md` |
 | Execution summary | `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/reports/execution-summary.md` |
 | Rerun report | `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/reports/rerun/` |
+
+## QA Checks (executable — chạy thật, so ngưỡng/contract)
+
+Tái dùng login/catalog; kết quả ghi `<TASK_OUTPUT_DIR>/reports/` và lên dashboard. Chi tiết + catalog schema: `scripts/qa/README.md`.
+
+| Việc | Lệnh | Autonomy / an toàn |
+|---|---|---|
+| Dashboard tổng hợp (SAPP DS) | `npm run dashboard` | đọc `knowledge/` → `reports/dashboard.html` |
+| Accessibility (axe-core) | `npm run accessibility -- --catalog <ui_catalog.json>` | never-auto; finding review |
+| Performance Loại A | `npm run perf -- --catalog <perf_catalog.json>` | threshold-gated; verdict **advisory** (median N) |
+| Security basic | `npm run security -- --catalog <security_catalog.json> --confirm-nonprod` | never-auto, **GET/non-prod**, mask PII |
+| Load Loại B (k6) | `npm run load -- --script tests/load/example.load.js --confirm-nonprod --docker` | never-auto, **non-prod**, cap; k6/Docker (thiếu → skip) |
+| Risk register (RBT) | `npm run risk` | Suggest-only; QA override band |
+| Risk gate | `npm run risk:gate` (cảnh báo) · `npm run risk:gate:enforce` (chặn CI) | High-risk thiếu độ sâu → CRITICAL |
+| Mobile-web | `npm run test:mobile-web` | device emulation (iPhone/Pixel) |
+
+> **Ambiguity Gate**: Phase 1 tự chặn sinh testcase khi requirement mơ hồ mức Critical/High → xuất `reports/phase1-clarifications.md` chờ QA/BA. Xem USER_GUIDE mục 12.
 
 ## Troubleshooting
 

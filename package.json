@@ -11,6 +11,7 @@
     "test:task:fe": "node scripts/utils/run_playwright_task.js --suite fe",
     "test:task:api": "node scripts/utils/run_playwright_task.js --suite api",
     "report": "node scripts/show_report.js",
+    "user-guide:images": "node scripts/utils/generate_user_guide_images.mjs",
     "dashboard": "node scripts/qa/dashboard_generate.js",
     "accessibility": "node scripts/qa/accessibility_check.js",
     "perf": "node scripts/qa/perf_check.js",

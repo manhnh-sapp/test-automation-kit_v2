@@ -66,7 +66,8 @@ test-automation-kit/
 │   ├── config/
 │   ├── workflows/
 │   │   ├── phase1_generate_tc.md            # entry Phase 1
-│   │   ├── phase1_01_prepare_context.md
+│   │   ├── phase1_00_scope_planning.md      # optional: RBT scope + risk register
+│   │   ├── phase1_01_prepare_context.md     # gồm Ambiguity Gate (chặn sinh TC khi mơ hồ)
 │   │   ├── phase1_02_generate_testcases.md
 │   │   ├── phase1_03_validate_export_report.md
 │   │   ├── phase1_04_auto_publish_jira.md
@@ -94,9 +95,14 @@ test-automation-kit/
 │   └── reference.md
 ├── scripts/
 │   ├── convert_excel/
-│   └── integrations/
+│   ├── integrations/
+│   └── qa/   # công cụ QA chạy thật: dashboard, accessibility, perf, security, load, risk_score/gate, ui_conformance
 ├── tests/
-│   └── support/setup/   # setup layer dùng chung (factory/hook/fixture/mock/cleanup/contract)
+│   ├── support/setup/   # setup layer dùng chung (factory/hook/fixture/mock/cleanup/contract)
+│   ├── mobile-web/       # spec mobile-web (Playwright device emulation)
+│   └── load/             # k6 load script (Loại B, opt-in)
+├── knowledge/            # bộ nhớ học: bugs/root_causes/locators/historical_execution (+ examples/) — learning loop
+├── exploratory/          # nhánh phụ never-auto (charter-based), ngoài Main Flow
 ├── profiles/
 │   └── <TASK_KEY>/task.env   # env động theo task, nạp qua TASK_ENV (tạo bằng npm run profile:create)
 ├── outputs/
@@ -125,6 +131,9 @@ test-automation-kit/
 | `scripts/convert_excel/` | Convert testcase Markdown sang Excel. |
 | `scripts/integrations/jira/` | Kiểm tra Jira connection và log bug. |
 | `scripts/integrations/google_sheet/` | Tích hợp Google Sheet khi project cần sync/export. |
+| `scripts/qa/` | Công cụ QA chạy thật (tái dùng login/catalog): `dashboard_generate` (SAPP DS), `accessibility_check` (axe-core), `perf_check` (Loại A), `security_check` (GET, non-prod), `load_check` (k6 wrapper, Loại B), `risk_score`/`risk_gate` (RBT), `ui_conformance_check`. Xem `scripts/qa/README.md`. |
+| `knowledge/` | Bộ nhớ học (learning loop): bug/root cause/locator heal/snapshot pass-fail đã qua gate → nguồn cho RBT + dashboard. `knowledge/examples/` là dữ liệu mẫu; `knowledge/` live khởi tạo rỗng. |
+| `exploratory/` | Nhánh phụ độc lập (never-auto, charter-based) — dò rủi ro ngoài testcase đã review; draft phải qua `tc_validator` mới tính coverage. |
 | `tests/support/setup/` | Setup layer dùng chung: factory/hook/fixture/mock/cleanup/contract cho Precondition Resolution Pass (xem `tests/support/setup/README.md`). |
 | `profiles/` | Env động theo từng task (`profiles/<TASK_KEY>/task.env`, nạp qua `TASK_ENV`); giá trị tĩnh vẫn ở `.env` chung. Tạo bằng `npm run profile:create -- <TASK_KEY>`. |
 | `outputs/` | Artifact theo project/task, không hardcode theo một project cụ thể. |
@@ -181,6 +190,15 @@ flowchart TD
 | Run task-scoped FE safely | `npm run test:task:fe -- --project-output <PROJECT_OUTPUT_DIR> --task <TASK_KEY>` |
 | Run task-scoped API safely | `npm run test:task:api -- --project-output <PROJECT_OUTPUT_DIR> --task <TASK_KEY>` |
 | Show report helper | `npm run report` |
+| QA Dashboard (SAPP DS) | `npm run dashboard` |
+| Accessibility (axe-core) | `npm run accessibility -- --catalog <ui_catalog.json>` |
+| Performance Loại A (đo, so ngưỡng) | `npm run perf -- --catalog <perf_catalog.json>` |
+| Security basic (GET, non-prod) | `npm run security -- --catalog <security_catalog.json> --confirm-nonprod` |
+| Load Loại B (k6, non-prod) | `npm run load -- --script tests/load/example.load.js --confirm-nonprod --docker` |
+| Risk register (RBT) | `npm run risk` |
+| Risk gate (cảnh báo / chặn CI) | `npm run risk:gate` · `npm run risk:gate:enforce` |
+| Mobile-web (device emulation) | `npm run test:mobile-web` |
+| Regenerate user-guide images | `npm run user-guide:images` |
 | Check Jira connection | `npm run integration:check` |
 | Check Jira connection live | `npm run integration:check:live` |
 | Dry-run publish testcase Jira | `npm run jira:testcase-publish:dry-run -- --task <TASK_KEY> --story <JIRA_STORY_KEY> --project-output <PROJECT_OUTPUT_DIR>` |

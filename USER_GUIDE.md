@@ -15,6 +15,7 @@
 - [9. Prompt và command thường dùng](#9-prompt-và-command-thường-dùng)
 - [10. Lỗi thường gặp và cách xử lý](#10-lỗi-thường-gặp-và-cách-xử-lý)
 - [11. Phụ lục](#11-phụ-lục)
+- [12. Năng lực nâng cao (Non-functional · Learning · Nhánh phụ)](#12-năng-lực-nâng-cao-non-functional--learning--nhánh-phụ)
 
 ## 1. Tổng quan
 
@@ -106,6 +107,7 @@ outputs/<project>/tasks/<TASK_KEY>/task.md
 | Git client | QA Member, QA Lead, Automation | Pull kit mới nhất và push thay đổi lên GitLab/GitHub nếu team yêu cầu. |
 | Node.js `>=18` | QA Member, Automation | Chạy script, Playwright và converter Excel. |
 | Playwright browser runtime | QA Member, Automation | Execute UI/API automation và tạo evidence. |
+| Docker **hoặc** k6 (optional) | Automation | Chỉ cần khi chạy **load test Loại B** (`npm run load`); thiếu thì lệnh tự bỏ qua. Xem mục 12. |
 | Quyền Jira/Confluence/Figma/Swagger | QA Member, QA Lead | Đọc requirement/design/API source theo từng story/task. |
 | Credential app/API test | QA Member, Automation | Login app, gọi API và tạo/rollback test data. |
 
@@ -1149,3 +1151,36 @@ Chi tiết ở Mục 8.
 | `partial-rerun/run_requirement_apply_approved.md` | Partial Rerun - Apply Approved. |
 | `tests/support/setup/README.md` | Setup layer dùng chung (factory/hook/fixture/mock/cleanup/contract). |
 | `.agent/skills/shared/precondition_setup_planner/SKILL.md` | Phân loại tiền điều kiện, chọn setup method, readiness/blocker. |
+
+## 12. Năng lực nâng cao (Non-functional · Learning · Nhánh phụ)
+
+Ngoài Main Flow (Phase 1 → 2 → Re-run), kit có nhóm năng lực **chạy được, tách biệt, opt-in** — tất cả tái dùng hạ tầng sẵn có (login/catalog/report) và tuân **Autonomy Gate** (Suggest-only / threshold-gated / never-auto). Đây KHÔNG phải bước bắt buộc của Main Flow; Exploratory và load/security là nhánh phụ, chạy khi cần.
+
+![Sơ đồ năng lực nâng cao](docs/user-guide-images/advanced-capabilities.png)
+
+### 12.1 Learning loop + Risk-Based Testing
+- **Knowledge Base** (`knowledge/`): sau mỗi task, `learning_recorder` ghi bug đã qua gate + root cause + snapshot pass/fail. Đây là bộ nhớ học, dùng lại xuyên task (live khởi tạo rỗng; `knowledge/examples/` là mẫu).
+- **Risk Scorer** (`npm run risk`): chấm `Risk = Likelihood × Impact` mỗi module từ `knowledge/` + `.agent/config/risk_model.json` → `reports/risk-register.{md,json}`. Cold-start (chưa có data) → band do **Impact** dẫn; QA **override band** nếu không đồng ý. `npm run risk:gate` (cảnh báo) / `risk:gate:enforce` (chặn CI khi module High thiếu độ sâu).
+- **Git Impact Analyzer**: đọc git diff → bề mặt dùng chung, làm input cho Change Impact (mục 17 gen testcase).
+
+### 12.2 Human checkpoint — Ambiguity Gate
+Phase 1 **chặn sinh testcase** khi requirement mơ hồ mức Critical/High: xuất Q&A + assumption vào `reports/phase1-clarifications.md`, đặt `AMBIGUITY_GATE: PENDING` và dừng chờ QA/BA. Chỉ khi RESOLVED mới sinh TC.
+
+### 12.3 Non-functional (chạy thật, so ngưỡng)
+| Năng lực | Lệnh | Ghi chú an toàn |
+|---|---|---|
+| Accessibility (axe-core) | `npm run accessibility -- --catalog <ui_catalog.json>` | never-auto; finding review |
+| Performance Loại A (single-user) | `npm run perf -- --catalog <perf_catalog.json>` | threshold-gated; verdict **advisory** (median N lần, UAT nhiễu) |
+| Security basic | `npm run security -- --catalog <security_catalog.json> --confirm-nonprod` | **GET/read-only, non-prod, mask PII**; fuzzing/ZAP là Manual-only |
+| Load Loại B (nhiều VU) | `npm run load -- --script tests/load/example.load.js --confirm-nonprod --docker` | k6 (binary ngoài/Docker), **non-prod, cap**; thiếu k6 → skip sạch |
+| Mobile-web | `npm run test:mobile-web` | device emulation thật (iPhone 13 / Pixel 7) |
+
+Ngưỡng perf/load lấy từ **NFR/SLA** (không bịa số). Perf Loại A = single-user; Load Loại B = tải nhiều VU (k6, KHÔNG dùng Playwright).
+
+### 12.4 Nhánh phụ & tiện ích
+- **Exploratory** (`exploratory/run_exploratory_session.md`): dò rủi ro ngoài testcase đã review; **never-auto**, ngoài Main Flow; draft phải qua `tc_validator` mới tính coverage.
+- **Manual QUICK** (`prompt_templates/phase1/05_manual_quick.md`): sinh nhanh testcase chạy tay (có cột thực thi) khi requirement đã rõ.
+- **Combinatorial/Pairwise** (`prompt_templates/phase1/06_cross_module.md`): ma trận tổ hợp nhiều biến — mặc định Pairwise + constraints (chống nổ case).
+- **Dashboard** (`npm run dashboard`): tổng hợp coverage/risk/flaky/non-functional theo **SAPP Academy Design System** → `reports/dashboard.html`.
+
+> Locator Healing (Phase 2, threshold-gated, opt-in `LOCATOR_HEAL=1`): chỉ heal locator ACTION khi confidence cao, KHÔNG heal locator assertion (chống false PASS).
