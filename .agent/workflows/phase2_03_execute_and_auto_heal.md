@@ -21,6 +21,7 @@ Giảm skip/fail giả, đảm bảo case pass thật sự validate đúng behav
    - Sửa root cause.
    - Rerun targeted.
    - Không đổi expected result khi chưa có bằng chứng requirement sai.
+   - Nếu FAIL do locator không tìm thấy element **và** `LOCATOR_HEAL=1`: áp dụng `.agent/rules/locator_healing_policy.md` (skill `locator_healing_agent`, threshold-gated). Chỉ heal locator bước ACTION/điều hướng với confidence cao (accessible name exact + role + vùng DOM) → ghi `locator_auto_healed: true` vào Auto-heal notes + lịch sử `knowledge/locators/`. Locator bước ASSERTION hoặc confidence thấp → KHÔNG heal, phân loại `setup_failure`/escalate như `BLOCKED_SETUP`.
 5. Với fail nghi product bug:
    - Rerun đủ vòng để loại flaky/setup.
    - Thu evidence ảnh/video phù hợp (log/response chỉ là diagnostic local).
@@ -32,6 +33,7 @@ Giảm skip/fail giả, đảm bảo case pass thật sự validate đúng behav
 - Evidence ảnh/video không được trắng hoặc không liên quan testcase.
 - Case phức tạp mà ảnh không mô tả đủ thì cần video.
 - Không coi pass nếu assertion chỉ kiểm tra trang/API “có phản hồi” chung chung.
+- Locator healing (nếu bật `LOCATOR_HEAL=1`) chỉ để chạm tới assertion, KHÔNG đụng phán quyết PASS/FAIL; không heal locator assertion; assertion vẫn fail sau heal = bug thật, report bình thường.
 
 ## Outputs
 
@@ -42,3 +44,4 @@ Giảm skip/fail giả, đảm bảo case pass thật sự validate đúng behav
 | Auto-heal notes | Execution summary |
 | Fail/skip classification | Execution summary (gồm `setup_failure` tách khỏi product bug) |
 | Cleanup status | Execution summary mục `Precondition Resolution` (rollback theo `RUN_ID`) |
+| Locator heal history (nếu bật) | `knowledge/locators/` + nhãn `locator_auto_healed` trong Auto-heal notes |
