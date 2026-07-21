@@ -40,6 +40,7 @@ Tài liệu này định nghĩa các rule chung áp dụng cho mọi workflow, p
 | Evidence | Chỉ **ảnh/video** làm evidence (xem §"Evidence — Quy chuẩn bắt buộc"); `trace/log` là diagnostic local, KHÔNG phải evidence. Lưu đúng scope task. |
 | Jira testcase publish | Step riêng trong phạm vi Phase 1; chỉ publish từ Excel canonical sau khi QA xác nhận. Excel là source of truth khi gen/publish; **Phase 2 execute mặc định lấy nguồn từ Xray** (`TESTCASE_SOURCE=xray`, kéo về canonical local `from-xray/*.xlsx`), `excel` là opt-out. |
 | Jira bug | Chỉ tạo khi fail đã được xác nhận là product/API bug. |
+| Testcase (md/Excel) | Cột "Kết quả mong đợi" đánh số **KHỚP từng bước** (bước 1→KQ 1, 2→2…), xuống dòng `<br>`; **CẤM gộp range** kiểu `1-2.`/`2-3.`; không ghi chung chung ("thành công"/"đúng"). Áp cả khi gen VÀ khi chỉnh sửa TC thủ công. Chi tiết: prompt gen Phase 1 §6. |
 
 ## Rules
 

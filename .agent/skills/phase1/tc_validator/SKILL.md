@@ -55,4 +55,5 @@ Kiểm tra testcase sau khi sinh/cập nhật để đảm bảo đủ chi tiế
 
 - “Dữ liệu hợp lệ” không có giá trị cụ thể.
 - Expected chung chung như “hệ thống hoạt động đúng”.
+- **Kết quả mong đợi gộp range (`1-2.`/`2-3.`) thay vì đánh số KHỚP từng bước (bước 1→KQ 1, 2→2…) — CẤM; mỗi bước 1 dòng, xuống dòng `<br>`.**
 - Coverage PASS chỉ vì số lượng testcase nhiều.
