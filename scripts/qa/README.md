@@ -59,3 +59,63 @@ node scripts/qa/ui_conformance_check.js --catalog <PROJECT_OUTPUT_DIR>/tasks/<TA
 - Catalog là **per-task** (sinh ở Phase 1, mục 2b của `run_phase1_template.md`), nhưng công cụ dùng chung.
 - Màn cần dữ liệu động (vd `batch_job_id`) thì điền URL sau khi có dữ liệu, hoặc dùng `preSteps` điều hướng.
 - Đây là bổ trợ, không thay thế review mắt/vision cho bố cục tổng thể — nhưng bắt trọn phần "exact text/format/column" mà mắt dễ bỏ sót khi bảng dài.
+
+---
+
+# perf_check.js — Performance executable (mục 16)
+
+Đo web vitals + API SLA + large-dataset + resource weight, so ngưỡng catalog → verdict **advisory** (median N lần chống flaky). Không có ngưỡng → N/A. Xem skill `.agent/skills/phase2/perf_check`.
+
+```bash
+TASK_ENV=profiles/<TASK>/task.env node scripts/qa/perf_check.js --catalog <.../perf_catalog.json> --runs 3
+# out: <task>/reports/perf-report.md + perf-report.json
+```
+
+## Catalog block `perf`
+```jsonc
+{
+  "login": { "baseUrlEnv": "OPS_BASE_URL", "loginPath": "/auth/login", "userEnv": "OPS_USERNAME", "passEnv": "OPS_PASSWORD" },
+  "perf": {
+    "screens": [{
+      "name": "Transaction list", "url": "/operations/sales/transactions",
+      "preSteps": [{ "action": "wait", "value": 1500 }],
+      "thresholds": { "ttfb": 800, "fcp": 1800, "lcp": 2500, "load": 4000, "cls": 0.1 }   // ms; cls là số
+    }],
+    "api": [{ "name": "list transactions", "url": "/api/v1/product-orders/transactions", "method": "GET", "threshold_ms": 2000 }]
+  }
+}
+```
+Ngưỡng lấy từ NFR/SLA/spec; thiếu ngưỡng cho metric nào → metric đó N/A.
+
+---
+
+# security_check.js — Security BASIC executable (mục 15, non-destructive)
+
+Kiểm headers/cookie, unauth, authz/IDOR (2 tài khoản test), exposure. **GET/read-only**, never-auto, cần `--confirm-nonprod`. Control → PASS/FAIL; exposure → finding (mask PII). Xem skill `.agent/skills/phase2/security_check` (ranh giới an toàn bắt buộc).
+
+```bash
+TASK_ENV=profiles/<TASK>/task.env node scripts/qa/security_check.js --catalog <.../security_catalog.json> --confirm-nonprod
+# out: <task>/reports/security-report.md + security-report.json
+```
+
+## Catalog block `security`
+```jsonc
+{
+  "security": {
+    "baseUrlEnv": "OPS_BASE_URL",
+    "headerTarget": "/",
+    "requiredHeaders": ["strict-transport-security","content-security-policy","x-frame-options","x-content-type-options","referrer-policy"],
+    "auth": { "loginPath": "/api/v1/auth/login", "userField": "username", "passField": "password", "tokenPath": "data.accessToken", "scheme": "Bearer" },
+    "accounts": {                          // 2 tài khoản TEST (xem .env.example). Thiếu → authz/IDOR = NEEDS_ACCOUNT
+      "low":  { "userEnv": "OPS_USERNAME_LOW",  "passEnv": "OPS_PASSWORD_LOW"  },
+      "high": { "userEnv": "OPS_USERNAME_HIGH", "passEnv": "OPS_PASSWORD_HIGH" }
+    },
+    "protectedEndpoints":  [{ "name": "me", "url": "/api/v1/users/me" }],           // unauth GET → kỳ vọng 401/403
+    "highPrivEndpoints":   [{ "name": "admin config", "url": "/api/v1/admin/config" }], // low role GET → kỳ vọng 403
+    "idorEndpoints":       [{ "name": "user B resource", "url": "/api/v1/orders/<ID_CUA_USER_B>" }], // low GET → 403/404
+    "sensitiveKeys": ["password","token","secret","hash","api_key"],
+    "checkTransport": true
+  }
+}
+```
+`idorEndpoints` chỉ trỏ resource của **account test B**, KHÔNG phải khách hàng thật. Fuzzing/quét sâu → OWASP ZAP opt-in, Manual-only.

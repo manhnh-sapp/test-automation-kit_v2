@@ -149,6 +149,37 @@ function findFlakyReports() {
   return { available: true, reason: '', items };
 }
 
+// --- Non-functional: best-effort đọc perf-report.json + security-report.json per-task ---
+function findNonFunctional() {
+  let projectOutputDir;
+  try {
+    projectOutputDir = resolveFromRepo(getProjectOutputDir());
+  } catch (err) {
+    return { available: false, items: [] };
+  }
+  const tasksDir = path.join(projectOutputDir, 'tasks');
+  if (!fs.existsSync(tasksDir)) return { available: false, items: [] };
+  const readJson = (p) => { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { return null; } };
+  const items = [];
+  for (const task of fs.readdirSync(tasksDir)) {
+    const perf = readJson(path.join(tasksDir, task, 'reports', 'perf-report.json'));
+    const sec = readJson(path.join(tasksDir, task, 'reports', 'security-report.json'));
+    if (!perf && !sec) continue;
+    const perfChecks = perf ? perf.screens.flatMap((s) => s.checks || []).concat(perf.api || []) : [];
+    const secChecks = sec ? sec.checks || [] : [];
+    items.push({
+      task,
+      perfFail: perfChecks.filter((c) => c.v === 'FAIL').length,
+      perfWarn: perfChecks.filter((c) => c.v === 'WARN').length,
+      secFail: secChecks.filter((c) => c.verdict === 'FAIL').length,
+      secFindings: sec ? (sec.findings || []).length : 0,
+      hasPerf: !!perf,
+      hasSec: !!sec,
+    });
+  }
+  return { available: true, items };
+}
+
 // ---------- render (SAPP Academy Design System) ----------
 
 function statusChip(kind, label) {
@@ -166,7 +197,7 @@ function dataTable(headers, rows, emptyMsg) {
   return `<div class="tablewrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
-function render({ coverage, moduleRisk, flaky, generatedAt, logo, branding }) {
+function render({ coverage, moduleRisk, flaky, nonFunctional, generatedAt, logo, branding }) {
   const b = branding;
   const c = branding.colors;
   const totalBugs = moduleRisk.reduce((n, r) => n + r.bugs, 0);
@@ -230,6 +261,20 @@ function render({ coverage, moduleRisk, flaky, generatedAt, logo, branding }) {
     : `<p class="empty">Chưa có bug/fail nào trong knowledge/.</p>`;
 
   // Flaky
+  const nfHtml = (nonFunctional && nonFunctional.available && nonFunctional.items.length)
+    ? dataTable(
+        ['Task', { label: 'Perf FAIL', num: true }, { label: 'Perf WARN', num: true }, { label: 'Security FAIL', num: true }, { label: 'Exposure finding', num: true }],
+        nonFunctional.items.map((it) => [
+          `<b>${esc(it.task)}</b>`,
+          { v: it.hasPerf ? (it.perfFail ? `<span class="bad">${it.perfFail}</span>` : '0') : '—' },
+          { v: it.hasPerf ? it.perfWarn : '—' },
+          { v: it.hasSec ? (it.secFail ? `<span class="bad">${it.secFail}</span>` : '0') : '—' },
+          { v: it.hasSec ? it.secFindings : '—' },
+        ]),
+        'Chưa có perf/security report.',
+      )
+    : `<p class="empty">Chưa có perf/security report (chạy <code>npm run perf</code> / <code>npm run security</code> per-task).</p>`;
+
   const flakyHtml = flaky.available
     ? dataTable(
         ['Task', 'Flaky triage report'],
@@ -302,6 +347,7 @@ th:first-child{border-top-left-radius:10px}th:last-child{border-top-right-radius
 tbody tr:last-child td{border-bottom:none}
 td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 td b{font-weight:700;color:var(--t1)}
+  .bad{color:var(--fail-fg);font-weight:700}
 .muted{color:var(--t3)}
 
 /* Status chips (reserved status palette + label, never color-alone) */
@@ -365,6 +411,11 @@ code{font-family:Consolas,monospace;font-size:12px;color:var(--t2);word-break:br
     ${flakyHtml}
   </section>
 
+  <section>
+    <div class="sec-eyebrow">Non-functional (Performance / Security — advisory)</div>
+    ${nfHtml}
+  </section>
+
   <div class="foot">${esc(b.brandName)} — ${esc(b.motto)}</div>
 </div>
 </body>
@@ -378,12 +429,14 @@ function main() {
   const coverage = buildCoverage(historical);
   const moduleRisk = buildModuleRisk(bugs, coverage);
   const flaky = findFlakyReports();
+  const nonFunctional = findNonFunctional();
   const branding = loadBranding();
 
   const html = render({
     coverage,
     moduleRisk,
     flaky,
+    nonFunctional,
     branding,
     logo: loadLogo(branding.logoPath),
     generatedAt: new Date().toISOString().replace('T', ' ').slice(0, 19),

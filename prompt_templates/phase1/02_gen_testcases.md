@@ -483,9 +483,13 @@ Ngoài special-char ở field (mục 3) và unauthorized/forbidden cơ bản (m�
 
 Ràng buộc thể hiện ở UI luôn phải có TC bypass thẳng BE (đồng bộ mục 10). Nhóm không áp dụng / không kiểm an toàn được ở môi trường test → `N/A + lý do` trong Coverage Gaps.
 
+> **Executable ở Phase 2 (BASIC, non-destructive):** security headers/cookie flags, truy cập chưa auth (401/403), ma trận authz + IDOR (2 tài khoản test), sensitive-data exposure, transport http→https chạy thật bằng `scripts/qa/security_check.js` (skill `security_check`, **GET/read-only, never-auto, cần `--confirm-nonprod`**). Control → PASS/FAIL; exposure → finding (mask PII). **Fuzzing/khai thác SQLi-XSS/brute-force/rate-limit → Manual-only + OWASP ZAP opt-in**, chỉ chạy khi có phê duyệt người + target non-prod. Thiếu 2 tài khoản test → authz/IDOR = `needs_account`.
+
 ## 16. Performance / Load / Stress Coverage (sinh khi requirement có SLA hoặc scope có dữ liệu lớn/đồng thời)
 
 Kit thiên functional; nhóm này CHỈ sinh khi có ngưỡng/tải trong scope hoặc rủi ro cao, và **ghi rõ ngưỡng lấy từ đâu** (SLA/NFR/spec). Không có ngưỡng → `N/A + lý do`, KHÔNG bịa số.
+
+> **Executable ở Phase 2:** phần deterministic (web vitals, API response time so SLA, large-dataset render, resource weight) chạy thật bằng `scripts/qa/perf_check.js` (skill `perf_check`, threshold-gated, median N lần) — ngưỡng khai trong catalog `perf`. Verdict là **advisory** (UAT nhiễu), không tự thành product bug.
 
 - **Response time / SLA**: endpoint/màn quan trọng phản hồi trong ngưỡng NFR (vd list < 2s). TC đo thời gian thực tế so ngưỡng đã nêu.
 - **Large dataset**: list/table/export với ≥100 (hoặc ngưỡng spec) bản ghi — render/pagination/scroll không mất dòng, không timeout, không treo (bắc cầu mục 7).
@@ -494,7 +498,7 @@ Kit thiên functional; nhóm này CHỈ sinh khi có ngưỡng/tải trong scope
 - **Payload/limit**: input/list ở kích thước tối đa cho phép không hỏng response; vượt max → chặn có kiểm soát, không `500`.
 - **Symptom N+1/slow**: thao tác trên list lớn không phình thời gian phi tuyến nếu quan sát được.
 
-TC chỉ đo được thủ công/cần tool tải riêng (k6/JMeter) → đánh dấu `Manual-only`/đề xuất tool trong Coverage Gaps, không bỏ.
+**Load thật (nhiều VU)** cần tool tải riêng (k6/JMeter) → giữ `Manual-only`/đề xuất tool trong Coverage Gaps, KHÔNG nhét vào runner Playwright. (Chỉ phần timing/vitals/render deterministic mới chạy qua `perf_check.js`.)
 
 ## 17. Change Impact / Regression Ripple Coverage (BẮT BUỘC khi story thêm/sửa/xoá làm thay đổi thứ dùng chung)
 

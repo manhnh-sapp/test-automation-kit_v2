@@ -13,6 +13,8 @@
     "report": "node scripts/show_report.js",
     "dashboard": "node scripts/qa/dashboard_generate.js",
     "accessibility": "node scripts/qa/accessibility_check.js",
+    "perf": "node scripts/qa/perf_check.js",
+    "security": "node scripts/qa/security_check.js",
     "integration:check": "node scripts/integrations/jira/check_connection.js",
     "integration:check:live": "node scripts/integrations/jira/check_connection.js --live",
     "jira:testcase-publish": "node scripts/integrations/jira/publish_testcases.js",
