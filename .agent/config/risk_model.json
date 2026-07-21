@@ -1,0 +1,51 @@
+{
+  "_note": "SAPP-tuned Impact (override .example.json). Impact = mức nghiệp vụ: defect ở đây tổn hại tới đâu (5=tiền/bảo mật, 3=vận hành lõi, 2=hiển thị). risk_score: risk = Likelihood × Impact; cold-start (chưa có bug/historical) Likelihood = prior = Impact → band ra NGAY từ Impact (I≥4→High, I=3→Medium, I≤2→Low), sắc lại khi learning data tích luỹ. QA chỉnh số cho khớp thực tế. TÊN module phải khớp cột `Module` của testcase (canonical, KHÔNG phải tên folder Xray theo đợt-việc). KHÔNG đổi likelihood/bands/depthPolicy (giữ như example để gate không đổi).",
+  "impact": {
+    "default": 3,
+    "modules": {
+      "Payment": 5,
+      "Transaction Management": 5,
+      "Cash Management": 5,
+      "Order": 5,
+      "Product & Order": 5,
+      "Refund": 5,
+      "Auth": 5,
+      "Permission": 5,
+      "HubSpot Sync": 4,
+      "Attendance": 4,
+      "Teaching Progress": 3,
+      "Learning Schedule": 3,
+      "Lesson": 3,
+      "Class": 3,
+      "Course": 3,
+      "Exam": 3,
+      "Question Bank": 3,
+      "Report": 3
+    },
+    "tagWeights": {
+      "money": 5, "payment": 5, "transaction": 5, "cash": 5, "order": 5, "refund": 5,
+      "security": 5, "auth": 5, "permission": 5,
+      "sync": 4, "hubspot": 4, "integration": 4, "calculation": 4, "attendance": 4,
+      "report": 3,
+      "display": 2, "ui-conformance": 2
+    }
+  },
+  "likelihood": {
+    "prior": "impact",
+    "confidenceFull": 5,
+    "bugWeight": 0.6,
+    "failRateWeight": 0.4
+  },
+  "bands": { "High": 12, "Medium": 6 },
+  "depthPolicy": {
+    "High":    { "minCount": 10, "requiredDimensions": ["negative", "boundary", "security"] },
+    "Medium":  { "minCount": 5,  "requiredDimensions": ["negative"] },
+    "Low":     { "minCount": 2,  "requiredDimensions": [] },
+    "UNKNOWN": { "minCount": 3,  "requiredDimensions": ["negative"] }
+  },
+  "dimensionKeywords": {
+    "negative": ["[negative]", "negative", "invalid", "không hợp lệ", "chặn", "required", "reject", "lỗi", "422", "400"],
+    "boundary": ["[boundary]", "boundary", "biên", "min-1", "max+1", "31/2", "nhuận", "00:00", "23:59"],
+    "security": ["idor", "injection", "xss", "privilege", "unauthorized", "403", "401", "mass-assignment", "token", "permission"]
+  }
+}
