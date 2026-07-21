@@ -139,3 +139,6 @@ CLAUDE.md
 
 # Báo cáo AI Agent (deck pptx/pdf) — bản trình bày, KHÔNG commit vào kit
 /AI-Agent-Activity-Report.*
+
+# GitLab Runner system id
+.runner_system_id
