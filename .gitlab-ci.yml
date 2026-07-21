@@ -1,0 +1,68 @@
+# GitLab CI — bản tương đương .github/workflows (dùng GitHub thì xoá file này, và ngược lại).
+# static: mỗi push/MR (không secret). integration + regression: manual/scheduled.
+# Secrets khai ở Settings → CI/CD → Variables (masked/protected): JIRA_*, XRAY_*, OPS_*, CONFLUENCE_*.
+
+stages:
+  - static
+  - integration
+  - regression
+  - report
+
+# ---- Static / quality check (mỗi push & MR, không secret, không UAT) ----
+static-check:
+  stage: static
+  image: node:18
+  cache:
+    key: { files: [package-lock.json] }
+    paths: [.npm/]
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - find scripts -name '*.js' -print0 | xargs -0 -n1 node --check
+    - find scripts -name '*.mjs' -print0 | xargs -0 -n1 node --check
+    - node -e "['knowledge/index.json','.agent/config/risk_model.example.json','.agent/config/dashboard.branding.example.json'].forEach(f=>{JSON.parse(require('fs').readFileSync(f,'utf8'));console.log('JSON OK',f)})"
+    - npm run dashboard
+    - npm run risk
+    - if node scripts/qa/security_check.js --catalog .agent/config/dashboard.branding.example.json; then echo "LỖI: security phải từ chối khi thiếu --confirm-nonprod"; exit 1; else echo "security guard OK"; fi
+
+# ---- Integration check (MANUAL, dry-run — KHÔNG publish/log Jira thật) ----
+integration-check:
+  stage: integration
+  image: node:18
+  when: manual
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npm run integration:check:live
+
+# ---- Live regression (MANUAL hoặc scheduled — KHÔNG mỗi push; hit UAT) ----
+regression:
+  stage: regression
+  image: mcr.microsoft.com/playwright:v1.60.0-noble   # đổi tag khớp @playwright/test trong package.json
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - when: manual
+  parallel: 4
+  variables:
+    PROJECT_OUTPUT_DIR: "outputs/ci"          # playwright.config THROW nếu thiếu 2 biến này
+    TASK_KEY: "CI-REGRESSION"
+    RUN_ID: "ci-$CI_PIPELINE_ID-$CI_NODE_INDEX"
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npx playwright install chromium webkit
+    - npx playwright test --shard=$CI_NODE_INDEX/$CI_NODE_TOTAL --reporter=blob --pass-with-no-tests
+  artifacts:
+    when: always
+    paths: [blob-report/]
+    expire_in: 1 week
+
+merge-report:
+  stage: report
+  image: mcr.microsoft.com/playwright:v1.60.0-noble
+  when: always
+  needs: [regression]
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npx playwright merge-reports --reporter=html blob-report/ || echo "no blob to merge"
+  artifacts:
+    when: always
+    paths: [playwright-report/]
+    expire_in: 2 weeks

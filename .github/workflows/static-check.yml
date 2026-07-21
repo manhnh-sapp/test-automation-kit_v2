@@ -1,0 +1,54 @@
+# Static / quality check — chạy MỖI push & PR. KHÔNG cần secret, KHÔNG hit UAT.
+# Bắt vỡ tooling của kit (script/JSON/schema) — đây là CI có giá trị thật ngay cả khi
+# chưa có spec committed (kit là AI-agent-driven; regression thật để ci.yml nightly/manual).
+name: static-check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Syntax check (node --check toàn bộ script committed)
+        run: |
+          set -e
+          find scripts -name '*.js' -print0 | while IFS= read -r -d '' f; do node --check "$f"; done
+          find scripts -name '*.mjs' -print0 | while IFS= read -r -d '' f; do node --check "$f"; done
+          echo "node --check OK"
+
+      - name: JSON validity (config + knowledge index)
+        run: |
+          node -e "
+          const fs=require('fs');
+          ['knowledge/index.json','.agent/config/risk_model.example.json','.agent/config/dashboard.branding.example.json']
+            .forEach(f=>{JSON.parse(fs.readFileSync(f,'utf8'));console.log('JSON OK',f);});
+          "
+
+      - name: Safe dry-runs (không secret / không UAT)
+        run: |
+          set -e
+          # Dashboard render trạng thái rỗng (knowledge/ live rỗng) — phải exit 0, không crash.
+          npm run dashboard
+          # Risk register cold-start (band từ Impact trong risk_model) — phải exit 0.
+          npm run risk
+
+      - name: Security guard phải TỪ CHỐI khi thiếu --confirm-nonprod
+        run: |
+          # security_check là never-auto: chạy không có --confirm-nonprod phải exit != 0 (không nã UAT).
+          if node scripts/qa/security_check.js --catalog .agent/config/dashboard.branding.example.json; then
+            echo "LỖI: security_check KHÔNG được chạy khi thiếu --confirm-nonprod"; exit 1
+          else
+            echo "OK: security guard từ chối đúng"
+          fi

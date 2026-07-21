@@ -1,0 +1,68 @@
+# Live regression — NIGHTLY hoặc MANUAL (KHÔNG every-push, tránh nã UAT mỗi commit).
+# Sharded + gộp 1 HTML report. Chỉ có nghĩa khi có spec committed (tests/fe|api promoted);
+# chưa có spec → --pass-with-no-tests giữ xanh (không đỏ oan). Static check ở static-check.yml.
+name: ci-regression
+
+on:
+  schedule:
+    - cron: '0 18 * * *'   # ~01:00 giờ VN hằng ngày (UTC+7). Đổi tuỳ team.
+  workflow_dispatch:
+
+# playwright.config.js THROW nếu thiếu PROJECT_OUTPUT_DIR + TASK_KEY khi load → phải set.
+env:
+  PROJECT_OUTPUT_DIR: outputs/ci
+  TASK_KEY: CI-REGRESSION
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]   # đổi số phần tử để tăng/giảm song song
+    env:
+      RUN_ID: ci-${{ github.run_id }}-${{ matrix.shard }}
+      OPS_BASE_URL: ${{ secrets.OPS_BASE_URL }}
+      OPS_USERNAME: ${{ secrets.OPS_USERNAME }}
+      OPS_PASSWORD: ${{ secrets.OPS_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Sharded regression (blob report)
+        run: npx playwright test --shard=${{ matrix.shard }}/4 --reporter=blob --pass-with-no-tests
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blob-${{ matrix.shard }}
+          path: blob-report/
+          retention-days: 7
+
+  merge-report:
+    needs: regression
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          path: all-blobs
+          pattern: blob-*
+          merge-multiple: true
+      - name: Gộp thành 1 HTML report
+        run: npx playwright merge-reports --reporter=html all-blobs || echo "no blob to merge"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: html-report
+          path: playwright-report/
+          retention-days: 14
+          if-no-files-found: ignore

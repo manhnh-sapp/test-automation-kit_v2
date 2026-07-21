@@ -1,0 +1,51 @@
+# Integration check — MANUAL. Kiểm kết nối Jira/Confluence/Xray + DRY-RUN publish/bug.
+# KHÔNG publish/log Jira thật (giữ human gate --qa-approved là hành động local).
+name: integration-check
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_output_dir:
+        description: 'PROJECT_OUTPUT_DIR (cho dry-run publish/bug, optional)'
+        required: false
+        default: ''
+      task_key:
+        description: 'TASK_KEY (optional — để dry-run publish/bug theo task)'
+        required: false
+        default: ''
+      story_key:
+        description: 'JIRA_STORY_KEY (optional)'
+        required: false
+        default: ''
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    env:
+      JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+      JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      JIRA_USERNAME: ${{ secrets.JIRA_EMAIL }}
+      XRAY_CLIENT_ID: ${{ secrets.XRAY_CLIENT_ID }}
+      XRAY_CLIENT_SECRET: ${{ secrets.XRAY_CLIENT_SECRET }}
+      CONFLUENCE_URL: ${{ secrets.CONFLUENCE_URL }}
+      CONFLUENCE_USERNAME: ${{ secrets.CONFLUENCE_USERNAME }}
+      CONFLUENCE_API_TOKEN: ${{ secrets.CONFLUENCE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm ci
+
+      - name: Live connection check (Jira/Confluence/Xray)
+        run: npm run integration:check:live
+
+      - name: Dry-run publish testcase (KHÔNG publish thật)
+        if: ${{ inputs.task_key != '' && inputs.story_key != '' && inputs.project_output_dir != '' }}
+        run: npm run jira:testcase-publish:dry-run -- --project-output "${{ inputs.project_output_dir }}" --task "${{ inputs.task_key }}" --story "${{ inputs.story_key }}"
+
+      - name: Dry-run bug reporter (KHÔNG log bug thật)
+        if: ${{ inputs.task_key != '' && inputs.story_key != '' && inputs.project_output_dir != '' }}
+        run: npm run jira:bug-report:dry-run -- --project-output "${{ inputs.project_output_dir }}" --task "${{ inputs.task_key }}" --story "${{ inputs.story_key }}"

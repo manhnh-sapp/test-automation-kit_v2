@@ -1,0 +1,106 @@
+# Task-scoped execute — MANUAL. Chạy Phase 2 cho 1 TASK_KEY, sharded, có risk-gate + artifact theo task.
+# LƯU Ý: chỉ chạy spec/automation ĐÃ CÓ trong checkout. Automation per-task do AI agent sinh ở Phase 2
+# và nằm trong outputs/ (gitignored) → CI KHÔNG tự sinh được; hãy commit/promote spec ổn định (tests/fe|api)
+# hoặc đưa automation vào checkout trước khi dùng job này.
+name: task-execute
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_output_dir:
+        description: 'PROJECT_OUTPUT_DIR (vd outputs/lms-operations-automation)'
+        required: true
+      task_key:
+        description: 'TASK_KEY (vd SAPP-26276)'
+        required: true
+      suite:
+        description: 'Suite'
+        type: choice
+        options: [all, fe, api]
+        default: all
+
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      PROJECT_OUTPUT_DIR: ${{ inputs.project_output_dir }}
+      TASK_KEY: ${{ inputs.task_key }}
+      RUN_ID: ci-${{ github.run_id }}-${{ matrix.shard }}
+      OPS_BASE_URL: ${{ secrets.OPS_BASE_URL }}
+      OPS_USERNAME: ${{ secrets.OPS_USERNAME }}
+      OPS_PASSWORD: ${{ secrets.OPS_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit
+
+      # Risk gate chạy trước — cold-start/chưa có register thì KHÔNG chặn (continue-on-error).
+      - name: Risk gate (best-effort, không chặn)
+        continue-on-error: true
+        run: |
+          npm run risk || true
+          npm run risk:gate || true
+
+      - name: Execute (sharded)
+        run: |
+          SUITE_ARGS=""
+          if [ "${{ inputs.suite }}" = "fe" ]; then SUITE_ARGS="--suite fe"; fi
+          if [ "${{ inputs.suite }}" = "api" ]; then SUITE_ARGS="--suite api"; fi
+          node scripts/utils/run_playwright_task.js \
+            --project-output "${{ inputs.project_output_dir }}" \
+            --task "${{ inputs.task_key }}" \
+            --run-id "$RUN_ID" \
+            $SUITE_ARGS \
+            -- --shard=${{ matrix.shard }}/4 --reporter=blob --pass-with-no-tests
+
+      - name: Upload blob report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task-blob-${{ matrix.shard }}
+          path: blob-report/
+          retention-days: 7
+
+      - name: Upload task artifacts (test-results + reports)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task-artifacts-${{ matrix.shard }}
+          path: |
+            ${{ inputs.project_output_dir }}/tasks/${{ inputs.task_key }}/test-results/
+            ${{ inputs.project_output_dir }}/tasks/${{ inputs.task_key }}/reports/
+          retention-days: 14
+          if-no-files-found: ignore
+
+  merge-report:
+    needs: execute
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          path: all-blobs
+          pattern: task-blob-*
+          merge-multiple: true
+      - name: Merge thành 1 HTML report
+        run: npx playwright merge-reports --reporter=html all-blobs || echo "no blob to merge"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: task-html-report
+          path: playwright-report/
+          retention-days: 14
+          if-no-files-found: ignore
