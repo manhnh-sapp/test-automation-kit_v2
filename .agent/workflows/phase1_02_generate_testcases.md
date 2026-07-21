@@ -14,6 +14,8 @@ Sinh bộ testcase đủ chi tiết để automation engineer có thể execute 
 
 ## Workflow
 
+> (Optional) Nếu task có branch/PR code liên quan tới TASK_KEY: chạy skill `git_impact_analyzer` (base mặc định `main`) để sinh `<TASK_OUTPUT_DIR>/requirements/git-impact.md` — input cho Change Impact / Regression Ripple (mục 17, Bước 1). Suggest-only, không tự đổi scope.
+
 1. Mapping requirement/business rule/API behavior thành testcase candidate.
 2. Phân nhóm testcase theo nhóm chính là business flow trong cột `Module`:
    - UI flow/business flow chính của requirement.
@@ -47,3 +49,4 @@ Sinh bộ testcase đủ chi tiết để automation engineer có thể execute 
 | Section phân nhóm testcase | Trong file testcase |
 | Setup Strategy contract (catalog PRE-NN) | Trong file testcase, sau section phân nhóm |
 | Requirement mapping | Trong testcase hoặc Phase 1 summary |
+| Change impact từ diff (optional) | `<TASK_OUTPUT_DIR>/requirements/git-impact.md` (skill `git_impact_analyzer`) |

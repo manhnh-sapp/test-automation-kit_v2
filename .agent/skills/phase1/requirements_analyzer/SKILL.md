@@ -1,5 +1,5 @@
 ---
-name: requirements_analyzer
+name: requirements-analyzer
 description: Phân tích requirement/UI/API artifact để tạo scope, business rule và coverage input cho Phase 1.
 ---
 

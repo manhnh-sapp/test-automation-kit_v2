@@ -13,6 +13,7 @@ Giữ Jira và local report đồng bộ với kết quả re-run thật, có ev
    - Comment Jira bằng tiếng Việt, ngắn gọn, nêu TC đã pass và evidence.
    - Transition Jira bug sang Done bằng transition hợp lệ.
    - Cập nhật local rerun report.
+   - Đồng bộ Knowledge Base (skill `learning_recorder`, Suggest-only): cập nhật `knowledge/bugs/<...>.json` → `jira_status: "Done"`; nếu bug có `root_cause_ref`, cập nhật `knowledge/root_causes/<slug>.json` → `status: "resolved"` + `resolved_at` (ISO date); cập nhật `knowledge/index.json`. Chỉ cập nhật entry đã tồn tại, không tạo mới ở bước rerun.
 2. Nếu FAIL/SKIP/blocker:
    - Không chuyển Done.
    - Ghi nguyên nhân và evidence local.
@@ -35,3 +36,4 @@ Giữ Jira và local report đồng bộ với kết quả re-run thật, có ev
 | Jira comment/transition | Jira bug |
 | Re-run summary | `<TASK_OUTPUT_DIR>/reports/rerun/` |
 | Updated task tracking | `<TASK_OUTPUT_DIR>/task.md` |
+| Knowledge Base đồng bộ trạng thái | `knowledge/bugs/`, `knowledge/root_causes/`, `knowledge/index.json` (khi bug → Done) |

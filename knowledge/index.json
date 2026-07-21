@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "updated_at": "2026-07-21",
+  "entries": [
+    {
+      "type": "bug",
+      "file": "bugs/SAPP-26276__menu-design-token.json",
+      "module": "Transaction Management",
+      "tags": [
+        "design-token",
+        "menu",
+        "ui-conformance"
+      ],
+      "task_key": "SAPP-26276",
+      "status": "Done"
+    },
+    {
+      "type": "bug",
+      "file": "bugs/SAPP-26276__paid-date-column.json",
+      "module": "Transaction Management",
+      "tags": [
+        "display",
+        "column",
+        "design-conformance"
+      ],
+      "task_key": "SAPP-26276",
+      "status": "Done"
+    },
+    {
+      "type": "bug",
+      "file": "bugs/SAPP-26276__payment-status-enum.json",
+      "module": "Transaction Management",
+      "tags": [
+        "enum",
+        "payment-method",
+        "status"
+      ],
+      "task_key": "SAPP-26276",
+      "status": "Done"
+    },
+    {
+      "type": "root_cause",
+      "file": "root_causes/txn-column-date-label.json",
+      "module": "Transaction Management",
+      "tags": [],
+      "task_key": "txn-column-date-label",
+      "status": "resolved"
+    },
+    {
+      "type": "root_cause",
+      "file": "root_causes/txn-enum-mismatch.json",
+      "module": "Transaction Management",
+      "tags": [],
+      "task_key": "txn-enum-mismatch",
+      "status": "resolved"
+    },
+    {
+      "type": "root_cause",
+      "file": "root_causes/txn-menu-design-token.json",
+      "module": "Transaction Management",
+      "tags": [],
+      "task_key": "txn-menu-design-token",
+      "status": "resolved"
+    },
+    {
+      "type": "historical_execution",
+      "file": "historical_execution/SAPP-26276__2026-07-09.json",
+      "module": "Transaction Management",
+      "tags": [],
+      "task_key": "SAPP-26276",
+      "status": null
+    }
+  ]
+}

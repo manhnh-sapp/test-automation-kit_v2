@@ -474,7 +474,7 @@ TC chỉ đo được thủ công/cần tool tải riêng (k6/JMeter) → đánh
 
 Bắt lỗi **"sửa 1 feature con → vỡ feature khác"** — thứ requirement của story KHÔNG mô tả nhưng hay gây incident. TÁCH RIÊNG khỏi Side-effect (mục 9 — output của chính action) và Data Consistency (mục 13 — trong scope).
 
-**Bước 1 — Bề mặt dùng chung mà thay đổi ĐỤNG tới.** Nếu thay đổi cô lập (không đụng gì chung) → ghi `N/A: no shared surface` ở Coverage Gaps, KHÔNG sinh bừa. Soi các bề mặt:
+**Bước 1 — Bề mặt dùng chung mà thay đổi ĐỤNG tới.** Nếu có `requirements/git-impact.md` (skill `git_impact_analyzer`), dùng nó làm danh sách bề mặt thay đổi **thực tế từ git diff** làm điểm khởi đầu thay vì chỉ đọc code đoán — vẫn tự soi bổ sung và giữ flag `QA confirm` cho phần không chắc. Nếu thay đổi cô lập (không đụng gì chung) → ghi `N/A: no shared surface` ở Coverage Gaps, KHÔNG sinh bừa. Soi các bề mặt:
 - Data/entity/field chung (thêm field, đổi kiểu/default, migration).
 - Endpoint/API chung (đổi payload/response/status code).
 - Component/validation/business rule/util dùng lại.

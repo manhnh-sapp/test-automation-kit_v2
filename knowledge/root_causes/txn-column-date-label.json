@@ -1,0 +1,11 @@
+{
+  "id": "txn-column-date-label",
+  "summary": "Build đặt tên cột ngày là 'Date'; FS/Figma yêu cầu 'Paid Date'",
+  "module": "Transaction Management",
+  "affected_files": [],
+  "related_bugs": [
+    "SAPP-26535"
+  ],
+  "status": "resolved",
+  "resolved_at": "2026-07-09"
+}

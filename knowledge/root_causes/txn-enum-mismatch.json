@@ -1,0 +1,11 @@
+{
+  "id": "txn-enum-mismatch",
+  "summary": "Enum Payment Method/Status build lệch spec (thiếu VNPay, 'Thẻ POS' vs 'Quẹt POS', thừa 'Chờ thanh toán')",
+  "module": "Transaction Management",
+  "affected_files": [],
+  "related_bugs": [
+    "SAPP-26537"
+  ],
+  "status": "resolved",
+  "resolved_at": "2026-07-09"
+}

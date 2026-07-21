@@ -39,6 +39,11 @@ Tạo report Phase 2 rõ ràng, không log bug sai do setup/prompt/test data, kh
    - Kết quả hiện tại.
    - Kết quả mong muốn.
 8. Evidence upload lên Jira chỉ là ảnh/video.
+9. Ghi Knowledge Entry (skill `learning_recorder`, Suggest-only) — **chỉ cho bug đã qua gate ở Bước 4**:
+   - Với mỗi bug đã qua gate (đã loại flaky/setup/data/prompt), ghi `knowledge/bugs/<TASK_KEY>__<slug>.json`; nếu đã xác định root cause thì ghi/nối `knowledge/root_causes/<slug>.json` (link 2 chiều).
+   - Ghi snapshot pass/fail theo module vào `knowledge/historical_execution/<TASK_KEY>__<date>.json` (lấy số liệu từ execution summary, gồm unassisted pass rate).
+   - Cập nhật `knowledge/index.json`.
+   - KHÔNG ghi case `BLOCKED_SETUP`/`SKIP_SETUP`/flaky/setup vào `knowledge/bugs/`. Không ghi secret/PII.
 
 ## Rules
 
@@ -47,6 +52,7 @@ Tạo report Phase 2 rõ ràng, không log bug sai do setup/prompt/test data, kh
 - Không upload `.md`, `.txt`, `.log`, `.json`, `.zip`, `trace.zip` hoặc execution summary lên Jira.
 - Không tự comment Jira nếu workflow không yêu cầu comment.
 - Không promote task-scoped automation vào `tests/fe/` hoặc `tests/api/` nếu chưa có review/approval rõ.
+- Chỉ ghi Knowledge Entry (`knowledge/bugs/`) cho bug đã qua Jira gate (Bước 4); không ghi setup/flaky/skip vào learning data.
 
 ## Outputs
 
@@ -58,3 +64,5 @@ Tạo report Phase 2 rõ ràng, không log bug sai do setup/prompt/test data, kh
 | Automation promotion status | Trong execution summary |
 | Jira dry-run result | Report liên quan |
 | Jira bug log nếu có | Execution summary hoặc local bug log |
+| Knowledge entry (bug/root cause) | `knowledge/bugs/`, `knowledge/root_causes/` (chỉ bug đã qua gate) + `knowledge/index.json` |
+| Execution snapshot | `knowledge/historical_execution/<TASK_KEY>__<date>.json` |

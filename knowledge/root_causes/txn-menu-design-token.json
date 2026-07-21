@@ -1,0 +1,11 @@
+{
+  "id": "txn-menu-design-token",
+  "summary": "Menu ⋮ dùng Inter 12.35px/500/#78829D, lệch token Figma 14px/400/#252F4A",
+  "module": "Transaction Management",
+  "affected_files": [],
+  "related_bugs": [
+    "SAPP-26536"
+  ],
+  "status": "resolved",
+  "resolved_at": "2026-07-09"
+}
