@@ -31,12 +31,13 @@ Coverage Gaps.
    - **High**: liên quan tiền/thanh toán, bảo mật/quyền, mất dữ liệu không rollback, hoặc **module có bug lịch sử** (đối chiếu `knowledge/bugs/` theo module — tần suất bug cao → nâng risk).
    - **Medium**: nghiệp vụ chính có workaround, tác động nhóm người dùng.
    - **Low**: phụ trợ/hiển thị, ít tác động.
-3. **Đề xuất density test theo risk** (khớp [02_gen_testcases.md mục 1](../../prompt_templates/phase1/02_gen_testcases.md)): High → vét sâu (10–15 TC, đủ edge); Medium → 5–10 TC; Low → happy path + 1–2 negative (2–5 TC). KHÔNG dàn đều.
+3. **Đề xuất density test theo risk** — density chuẩn lấy từ **`depthPolicy` trong `.agent/config/risk_model.json`** (nguồn duy nhất; mặc định High minCount 10 + edge/boundary/security, Medium 5, Low 2). KHÔNG dàn đều.
+   - **Chạy được (khuyến nghị):** `TASK_ENV=profiles/<TASK>/task.env npm run risk` (skill `risk_scorer`) → chấm Risk = Likelihood × Impact per module từ `knowledge/` + config, sinh `reports/risk-register.{md,json}`. Cold-start (knowledge rỗng) → band do Impact dẫn; QA **override band** (`band_override` + `override_reason`) nếu không đồng ý.
 4. Nếu có `git-impact.md`: dùng bề mặt thay đổi thật để nghiêng trọng số (vd đổi endpoint → API + contract regression; đổi permission → security).
 5. Đề xuất **phân bổ loại test** (api / ui / security / regression / a11y / performance) kèm lý do ngắn; loại không áp dụng ghi `N/A + lý do`.
 6. Ghi vào `reports/phase1-summary.md` mục `### Scope Suggestion (Suggest-only)`:
-   - Bảng `| Module/Chức năng | Risk Level | Tiêu chí (tiền/bảo mật/bug lịch sử) | Density đề xuất | Loại test trọng tâm |`.
-   - Đây là **gợi ý** cho QA + input cho tc_validator (soi độ sâu theo risk), KHÔNG tự skip loại test nào.
+   - Bảng `| Module/Chức năng | Risk Level | Tiêu chí (tiền/bảo mật/bug lịch sử) | Density đề xuất | Loại test trọng tâm |` (hoặc dán trực tiếp `risk-register.md`) + **Thứ tự execute** (High trước, theo `executeOrder`).
+   - Đây là **gợi ý** cho QA + input cho tc_validator/`risk_gate` (soi độ sâu theo risk), KHÔNG tự skip loại test nào.
 
 ## Rules
 

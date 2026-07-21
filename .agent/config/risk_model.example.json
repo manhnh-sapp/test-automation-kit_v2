@@ -1,0 +1,36 @@
+{
+  "_note": "Copy thành .agent/config/risk_model.json để override. Bỏ file này → script dùng default baked (giống hệt đây). depthPolicy ở đây là NGUỒN DUY NHẤT cho density theo band — prose ở 02_gen/phase1_00/tc_validator chỉ trỏ tới nó.",
+  "impact": {
+    "default": 3,
+    "modules": {
+      "Payment": 5,
+      "Transaction Management": 5,
+      "Auth": 5,
+      "Permission": 5,
+      "Report": 3,
+      "Attendance": 3
+    },
+    "tagWeights": {
+      "money": 5, "payment": 5, "security": 5, "auth": 5, "permission": 5,
+      "report": 3, "calculation": 4, "display": 2, "ui-conformance": 2
+    }
+  },
+  "likelihood": {
+    "prior": "impact",
+    "confidenceFull": 5,
+    "bugWeight": 0.6,
+    "failRateWeight": 0.4
+  },
+  "bands": { "High": 12, "Medium": 6 },
+  "depthPolicy": {
+    "High":    { "minCount": 10, "requiredDimensions": ["negative", "boundary", "security"] },
+    "Medium":  { "minCount": 5,  "requiredDimensions": ["negative"] },
+    "Low":     { "minCount": 2,  "requiredDimensions": [] },
+    "UNKNOWN": { "minCount": 3,  "requiredDimensions": ["negative"] }
+  },
+  "dimensionKeywords": {
+    "negative": ["[negative]", "negative", "invalid", "không hợp lệ", "chặn", "required", "reject", "lỗi", "422", "400"],
+    "boundary": ["[boundary]", "boundary", "biên", "min-1", "max+1", "31/2", "nhuận", "00:00", "23:59"],
+    "security": ["idor", "injection", "xss", "privilege", "unauthorized", "403", "401", "mass-assignment", "token", "permission"]
+  }
+}

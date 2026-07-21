@@ -18,7 +18,7 @@ Kiểm tra testcase sau khi sinh/cập nhật để đảm bảo đủ chi tiế
 | Steps | Step rõ ràng, executable, không gom quá nhiều hành vi trong một dòng. |
 | Expected | Expected cụ thể, map đúng business rule/API/UI state. |
 | Coverage | Đánh giá requirement coverage và risk-based gate. |
-| Risk depth (RBT) | Không chỉ soi % coverage: module **High risk** (tiền/bảo mật/bug lịch sử — theo `### Scope Suggestion`) phải đạt **độ sâu** tương ứng (đủ edge/boundary/negative, density High 10–15 TC), không chỉ happy path. High risk mà chỉ có vài case nông → gap, không PASS. |
+| Risk depth (RBT) | Không chỉ soi % coverage: module **High risk** (theo `### Scope Suggestion`/`risk-register.md`) phải đạt **độ sâu** theo `depthPolicy` trong `.agent/config/risk_model.json` (nguồn duy nhất, mặc định High minCount 10 + edge/boundary/security). High risk mà nông → gap, không PASS. **Chạy được:** `npm run risk:gate` (skill `risk_scorer`) — bản executable của gate này; `risk:gate:enforce` chặn CI khi CRITICAL High. |
 | Design techniques | Kiểm áp đúng kỹ thuật khi applicable: entity có vòng đời trạng thái → có **State Transition** (ma trận status × action, gồm transition hợp lệ + bị chặn); logic tổ hợp nhiều điều kiện → có **Decision Table** (đủ combination + nhánh else/default). Applicable mà thiếu → gap. |
 | Logic/Data/Security/Perf | Soi 4 dimension hay bị bỏ (mục 13-16 của rule): logic/tính toán có oracle **giá trị cụ thể** + so khớp/delta dữ liệu; field trống nghi ngờ có TC đối chiếu response BE (null/rỗng/thiếu/0); endpoint có id có TC IDOR + injection/mass-assignment/data-exposure; SLA/large-dataset/concurrent khi có ngưỡng. Thiếu mà applicable → ghi gap, không PASS im lặng. |
 

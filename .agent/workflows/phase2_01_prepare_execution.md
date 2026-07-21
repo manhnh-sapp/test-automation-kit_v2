@@ -24,6 +24,7 @@ Tránh chạy nhầm task, nhầm story hoặc thiếu env khiến testcase bị
    - ALL
    - selected TC IDs
    - UI/API/E2E subset
+   - **Thứ tự execute theo risk:** nếu có `<TASK_OUTPUT_DIR>/reports/risk-register.json` (skill `risk_scorer`), execute theo `executeOrder` — **module High risk trước** (bắt bug quan trọng sớm), rồi Medium/Low.
 5. Kiểm tra runtime config:
    - App/API URL
    - credential/token local
