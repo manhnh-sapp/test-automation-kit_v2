@@ -36,7 +36,7 @@ module.exports = defineConfig({
   projects: [
     {
       name: 'chromium-desktop',
-      testIgnore: '**/mobile-web/**',
+      testIgnore: ['**/mobile-web/**', '**/load/**'], // load/ là k6 script, KHÔNG phải Playwright spec
       use: { ...devices['Desktop Chrome'] },
     },
     {

@@ -15,6 +15,7 @@
     "accessibility": "node scripts/qa/accessibility_check.js",
     "perf": "node scripts/qa/perf_check.js",
     "security": "node scripts/qa/security_check.js",
+    "load": "node scripts/qa/load_check.js",
     "risk": "node scripts/qa/risk_score.js",
     "risk:gate": "node scripts/qa/risk_gate.js",
     "risk:gate:enforce": "node scripts/qa/risk_gate.js --enforce",

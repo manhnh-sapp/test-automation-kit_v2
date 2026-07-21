@@ -164,7 +164,8 @@ function findNonFunctional() {
   for (const task of fs.readdirSync(tasksDir)) {
     const perf = readJson(path.join(tasksDir, task, 'reports', 'perf-report.json'));
     const sec = readJson(path.join(tasksDir, task, 'reports', 'security-report.json'));
-    if (!perf && !sec) continue;
+    const load = readJson(path.join(tasksDir, task, 'reports', 'load-report.json'));
+    if (!perf && !sec && !load) continue;
     const perfChecks = perf ? perf.screens.flatMap((s) => s.checks || []).concat(perf.api || []) : [];
     const secChecks = sec ? sec.checks || [] : [];
     items.push({
@@ -173,8 +174,10 @@ function findNonFunctional() {
       perfWarn: perfChecks.filter((c) => c.v === 'WARN').length,
       secFail: secChecks.filter((c) => c.verdict === 'FAIL').length,
       secFindings: sec ? (sec.findings || []).length : 0,
+      loadFail: load ? (load.thresholds || []).filter((t) => !t.ok).length : 0,
       hasPerf: !!perf,
       hasSec: !!sec,
+      hasLoad: !!load,
     });
   }
   return { available: true, items };
@@ -263,13 +266,14 @@ function render({ coverage, moduleRisk, flaky, nonFunctional, generatedAt, logo,
   // Flaky
   const nfHtml = (nonFunctional && nonFunctional.available && nonFunctional.items.length)
     ? dataTable(
-        ['Task', { label: 'Perf FAIL', num: true }, { label: 'Perf WARN', num: true }, { label: 'Security FAIL', num: true }, { label: 'Exposure finding', num: true }],
+        ['Task', { label: 'Perf FAIL', num: true }, { label: 'Perf WARN', num: true }, { label: 'Security FAIL', num: true }, { label: 'Exposure finding', num: true }, { label: 'Load FAIL', num: true }],
         nonFunctional.items.map((it) => [
           `<b>${esc(it.task)}</b>`,
           { v: it.hasPerf ? (it.perfFail ? `<span class="bad">${it.perfFail}</span>` : '0') : '—' },
           { v: it.hasPerf ? it.perfWarn : '—' },
           { v: it.hasSec ? (it.secFail ? `<span class="bad">${it.secFail}</span>` : '0') : '—' },
           { v: it.hasSec ? it.secFindings : '—' },
+          { v: it.hasLoad ? (it.loadFail ? `<span class="bad">${it.loadFail}</span>` : '0') : '—' },
         ]),
         'Chưa có perf/security report.',
       )

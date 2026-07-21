@@ -498,7 +498,7 @@ Kit thiên functional; nhóm này CHỈ sinh khi có ngưỡng/tải trong scope
 - **Payload/limit**: input/list ở kích thước tối đa cho phép không hỏng response; vượt max → chặn có kiểm soát, không `500`.
 - **Symptom N+1/slow**: thao tác trên list lớn không phình thời gian phi tuyến nếu quan sát được.
 
-**Load thật (nhiều VU)** cần tool tải riêng (k6/JMeter) → giữ `Manual-only`/đề xuất tool trong Coverage Gaps, KHÔNG nhét vào runner Playwright. (Chỉ phần timing/vitals/render deterministic mới chạy qua `perf_check.js`.)
+**Load thật (nhiều VU — Loại B: load/stress/soak)** dùng tool tải chuyên: **opt-in qua `scripts/qa/load_check.js` (skill `load_check`, wrapper k6)** — k6 là binary NGOÀI (không phải npm dep; thiếu → skip sạch), **never-auto, chỉ non-prod, cap khiêm tốn**, KHÔNG nhét vào runner Playwright. k6 hợp kit hơn JMeter; **Katalon KHÔNG phải load tool**. (Loại A single-user: timing/vitals/render/resource → `perf_check.js`.) Ngưỡng lấy từ NFR khai trong k6 `thresholds`.
 
 ## 17. Change Impact / Regression Ripple Coverage (BẮT BUỘC khi story thêm/sửa/xoá làm thay đổi thứ dùng chung)
 
