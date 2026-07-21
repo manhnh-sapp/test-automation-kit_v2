@@ -119,3 +119,30 @@ TASK_ENV=profiles/<TASK>/task.env node scripts/qa/security_check.js --catalog <.
 }
 ```
 `idorEndpoints` chỉ trỏ resource của **account test B**, KHÔNG phải khách hàng thật. Fuzzing/quét sâu → OWASP ZAP opt-in, Manual-only.
+
+---
+
+# seed_knowledge_from_jira.js — nạp lịch sử Jira/Xray vào knowledge (Suggest-only)
+
+Bootstrap Risk-Based Testing: kit chỉ điền `knowledge/` khi bug qua Jira gate ở Phase 2, nên dự án mới → knowledge rỗng → `risk_score` cold-start chỉ dựa **Impact** (đoán Likelihood). Script này nạp **bug đã resolved** (→ `knowledge/bugs/`, cấp `bugCount`) và **kết quả execution cũ trên Xray** (→ `knowledge/historical_execution/`, cấp `failRate`) → `risk_score` có Likelihood thật ngay từ ngày đầu. **Không sửa `risk_score`, chỉ cấp dữ liệu.**
+
+```bash
+node scripts/qa/seed_knowledge_from_jira.js                    # DRY-RUN: in bảng map module, chưa ghi
+node scripts/qa/seed_knowledge_from_jira.js --with-execution   # + preview snapshot execution từ Xray
+npm run seed:knowledge:apply -- --since 2025-01-01             # ghi thật vào knowledge/ + rebuild index.json
+```
+
+| Flag | Ý nghĩa |
+|---|---|
+| `--apply` | Ghi thật (mặc định DRY-RUN — chỉ preview). |
+| `--project <KEY>` | Jira project (mặc định `JIRA_PROJECT_KEY`). |
+| `--jql "<...>"` | Override toàn bộ JQL bug (bỏ qua project/since mặc định). |
+| `--since <YYYY-MM-DD>` | Chỉ bug `resolutiondate >=` ngày này. |
+| `--module-from component\|label` | Suy `module` từ Jira **component** (mặc định) hay **label**. |
+| `--label-prefix <p>` | Khi dùng label: chỉ label bắt đầu bằng `p` là module (cắt prefix). |
+| `--with-execution` | Seed thêm `historical_execution` từ Xray Cloud (best-effort; thiếu creds/lỗi schema → skip sạch). |
+| `--max <N>` / `--exec-max <N>` | Cap số bug (500) / test execution (50). |
+| `--include-all-resolutions` | Bỏ lọc resolution=fix (mặc định loại Duplicate/Won't Do/Cannot Reproduce...). |
+| `--fallback-module <name>` | Gán module này khi bug không có component/label (mặc định: bỏ qua). |
+
+**An toàn:** read-only (JQL/GraphQL query, KHÔNG tạo/sửa issue) · DRY-RUN mặc định · mask email/SĐT · idempotent (dedup theo bug id) · đánh dấu `source: "jira-seed"` (xem `knowledge/SCHEMA.md`). Bug chỉ seed khi resolution = fix thật. **QA soi bảng map module trước khi `--apply`** (confidence trong `risk_score` bão hoà nhanh → map sai làm risk lệch).
