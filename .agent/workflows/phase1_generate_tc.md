@@ -50,8 +50,8 @@ Sinh bộ testcase chi tiết, có trace requirement, có phân nhóm chức nă
 
 | Thứ tự | Step file | Mục tiêu |
 |---:|---|---|
-| 1 | [phase1_01_prepare_context.md](phase1_01_prepare_context.md) | Xác nhận scope, đọc artifact local và fetch tài liệu còn thiếu. |
-| 2 | [phase1_02_generate_testcases.md](phase1_02_generate_testcases.md) | Sinh testcase theo template 9 cột, phân nhóm và risk. |
+| 1 | [phase1_01_prepare_context.md](phase1_01_prepare_context.md) | Xác nhận scope, đọc artifact local, fetch tài liệu còn thiếu, và chạy **Ambiguity Gate**. |
+| 2 | [phase1_02_generate_testcases.md](phase1_02_generate_testcases.md) | Sinh testcase theo template 9 cột, phân nhóm và risk. **KHÔNG vào bước này nếu `AMBIGUITY_GATE` chưa `RESOLVED`.** |
 | 3 | [phase1_03_validate_export_report.md](phase1_03_validate_export_report.md) | Validate chất lượng, export Excel và ghi report Phase 1. |
 | 4 | [phase1_04_auto_publish_jira.md](phase1_04_auto_publish_jira.md) | Sau khi QA xác nhận, đọc Excel canonical và publish testcase lên Jira. |
 
@@ -70,6 +70,7 @@ Sinh bộ testcase chi tiết, có trace requirement, có phân nhóm chức nă
 
 Phase 1 Generate/Testcase chỉ hoàn tất khi có đủ:
 
+- `AMBIGUITY_GATE: RESOLVED` trong `task.md` (mọi câu hỏi Critical/High đã được QA/BA trả lời hoặc chấp nhận assumption).
 - Testcase Markdown.
 - File Excel tương ứng.
 - `phase1-summary.md` có coverage/risk/quality gate.

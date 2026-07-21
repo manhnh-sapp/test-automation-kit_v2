@@ -294,14 +294,33 @@ Không giảm số lượng testcase bằng cách gộp nhiều rule khác nhau 
 - **State Transition**: cho workflow có trạng thái. Với entity có vòng đời trạng thái, BẮT BUỘC sinh đủ ma trận `status x action` (vd View/Edit/Cancel theo từng status), gồm cả action bị chặn ở mỗi status.
 - **Không gộp biên vào 1 TC**: mỗi giá trị biên/đại diện partition là 1 TC riêng để steps/expected không mơ hồ.
 
+**Cách dựng — ví dụ mẫu (áp dụng khi applicable, không copy nguyên):**
+
+*Decision Table* (logic nhiều điều kiện → liệt kê ma trận, mỗi combination quan trọng = 1 TC, gồm nhánh else):
+
+| # | ĐK1: có tồn kho | ĐK2: đã thanh toán | Kết quả kỳ vọng |
+|---|---|---|---|
+| 1 | Có | Có | Cho đặt hàng → 200 |
+| 2 | Có | Chưa | Chặn → "Cần thanh toán trước" |
+| 3 | Hết | Có/Chưa | Chặn → "Hết hàng" (else, không cần xét ĐK2) |
+
+*State Transition* (entity có vòng đời → ma trận `status × action`, gồm cả action bị chặn):
+
+| Status hiện tại | Action | Kỳ vọng (transition hợp lệ hay bị chặn) |
+|---|---|---|
+| Pending | Approve | → Approved (hợp lệ) |
+| Pending | Cancel | → Cancelled (hợp lệ) |
+| Approved | Edit | Bị chặn (Approved không cho sửa) — negative TC |
+| Cancelled | Approve | Bị chặn — negative TC |
+
 ## 3. Field-Level Validation (QUAN TRỌNG)
 Mỗi input field phải có TC validation riêng:
 
 | Field Type | TCs bắt buộc |
 |---|---|
-| **Text (string)** | Empty, whitespace-only (phải bị từ chối), trim đầu/cuối, quá ngắn (min-1), đúng min, quá dài (max+1), đúng max, unicode tiếng Việt (phải nhận), special chars `<>&"'` (phân biệt: hiển thị đúng vs chặn injection/XSS) |
+| **Text (string)** | Empty, whitespace-only (phải bị từ chối), trim đầu/cuối, quá ngắn (min-1), đúng min, quá dài (max+1), đúng max, unicode tiếng Việt (phải nhận), **emoji/ký tự 4-byte** (nhận hay chặn theo spec, không vỡ/`????`), special chars `<>&"'` (phân biệt: hiển thị đúng vs chặn injection/XSS) |
 | **Email** | Format sai (thiếu @, thiếu domain), trùng tài khoản đã có, quá dài |
-| **Password** | Quá ngắn (min-1), đúng min, thiếu uppercase, thiếu number, thiếu special char (theo rule) |
+| **Password** | Quá ngắn (min-1), đúng min, thiếu uppercase, thiếu number, thiếu special char (theo rule); **chặn paste/autofill vào field confirm nếu spec yêu cầu nhập tay** |
 | **Number** | Kiểu string, số âm, số 0, vượt max, số thập phân (nếu integer) |
 | **Dropdown/Enum/Filter** | Không chọn (required); **kiểm kê option** (đủ số lượng + đúng label/thứ tự/default so spec — mục 12); **1 case đại diện** — Dữ liệu Test ghi 1 giá trị mẫu, KHÔNG tạo 1 TC/giá trị (nổ case), nhưng steps/expected ghi rõ "lặp qua **tất cả** option, mỗi option lọc đúng tập con của nó" để Phase 2 execute vét hết; option **khác lớp hành vi** (đổi kết quả/nhánh/field/quyền) tách TC riêng; option đặc biệt "Tất cả"/"Khác"/empty; default; reset |
 | **Date** | Format sai, ngày không tồn tại (31/2), ngày quá khứ/tương lai (theo rule) |

@@ -1,0 +1,27 @@
+{
+  "_note": "Copy thành .agent/config/dashboard.branding.json để override branding Dashboard. Bỏ file này đi → dashboard dùng default SAPP Academy DS. Chỉ cần khai field muốn đổi; phần thiếu kế thừa default.",
+  "brandName": "SAPP Academy",
+  "eyebrow": "SAPP Academy · QA Automation Kit",
+  "motto": "Advance your career",
+  "logoPath": "docs/brand/logo-sapp.png",
+  "fontFamily": "'Be Vietnam Pro', system-ui, 'Segoe UI', sans-serif",
+  "fontImport": "https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap",
+  "colors": {
+    "gold": "#FFB700",
+    "gold600": "#E6A300",
+    "gold800": "#946800",
+    "goldWash": "#FFF9EC",
+    "ink": "#1A1916",
+    "wash": "#FAF8F3",
+    "card": "#FFFFFF",
+    "bSubtle": "#E6E0D5",
+    "bSoft": "#EFE9DD",
+    "t1": "#1A1916",
+    "t2": "#57534A",
+    "t3": "#79736A",
+    "passBg": "#E9F6EF",
+    "passFg": "#14613F",
+    "failBg": "#FBEAEA",
+    "failFg": "#9E2C2C"
+  }
+}

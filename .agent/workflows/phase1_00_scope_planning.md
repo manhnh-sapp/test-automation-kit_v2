@@ -27,10 +27,16 @@ Coverage Gaps.
 ## Workflow
 
 1. Đọc project context + requirement để hiểu scope, layer (UI/API), role, data behavior.
-2. Nếu có `git-impact.md`: dùng bề mặt thay đổi thật để nghiêng trọng số (vd đổi endpoint → API + contract regression; đổi permission → security).
-3. Nếu có `knowledge/bugs/` cho module trong scope: coi là risk hint (module từng nhiều bug → đề xuất regression smoke đậm hơn) — Suggest-only, KHÔNG tự nâng priority.
-4. Đề xuất **phân bổ loại test** (api / ui / security / regression / a11y / performance) kèm lý do ngắn cho mỗi loại; loại không áp dụng ghi `N/A + lý do`.
-5. Ghi đề xuất vào `reports/phase1-summary.md` mục `### Scope Suggestion (Suggest-only)`.
+2. **Chấm Risk Level cho từng module/chức năng** (Risk-Based Testing) theo tiêu chí:
+   - **High**: liên quan tiền/thanh toán, bảo mật/quyền, mất dữ liệu không rollback, hoặc **module có bug lịch sử** (đối chiếu `knowledge/bugs/` theo module — tần suất bug cao → nâng risk).
+   - **Medium**: nghiệp vụ chính có workaround, tác động nhóm người dùng.
+   - **Low**: phụ trợ/hiển thị, ít tác động.
+3. **Đề xuất density test theo risk** (khớp [02_gen_testcases.md mục 1](../../prompt_templates/phase1/02_gen_testcases.md)): High → vét sâu (10–15 TC, đủ edge); Medium → 5–10 TC; Low → happy path + 1–2 negative (2–5 TC). KHÔNG dàn đều.
+4. Nếu có `git-impact.md`: dùng bề mặt thay đổi thật để nghiêng trọng số (vd đổi endpoint → API + contract regression; đổi permission → security).
+5. Đề xuất **phân bổ loại test** (api / ui / security / regression / a11y / performance) kèm lý do ngắn; loại không áp dụng ghi `N/A + lý do`.
+6. Ghi vào `reports/phase1-summary.md` mục `### Scope Suggestion (Suggest-only)`:
+   - Bảng `| Module/Chức năng | Risk Level | Tiêu chí (tiền/bảo mật/bug lịch sử) | Density đề xuất | Loại test trọng tâm |`.
+   - Đây là **gợi ý** cho QA + input cho tc_validator (soi độ sâu theo risk), KHÔNG tự skip loại test nào.
 
 ## Rules
 
@@ -43,4 +49,4 @@ Coverage Gaps.
 
 | Output | Vị trí |
 |---|---|
-| Scope Suggestion (loại test + lý do) | `reports/phase1-summary.md` mục `### Scope Suggestion (Suggest-only)` |
+| Scope Suggestion (Risk Level + density + loại test) | `reports/phase1-summary.md` mục `### Scope Suggestion (Suggest-only)` |

@@ -27,6 +27,18 @@
 | API/Swagger | `OPS_API_BASE_URL`, `OPS_SWAGGER_URL` | Optional nếu không test API app 2. |
 | Feature URLs | `FEATURE_1_URL`, `FEATURE_2_URL`, `FEATURE_3_URL` | Optional cho module đặc thù. |
 
+## Dashboard branding (optional)
+
+Dashboard (`npm run dashboard`) mặc định dùng **SAPP Academy Design System**. Để đổi branding cho project
+khác (màu/logo/font/tên), copy `.agent/config/dashboard.branding.example.json` →
+`.agent/config/dashboard.branding.json` và chỉ khai field muốn đổi (phần thiếu kế thừa default SAPP).
+Không có file override → giữ nguyên SAPP DS.
+
+## Learning data
+
+`knowledge/` (live) khởi tạo **rỗng** cho project mới; `learning_recorder` điền dần khi chạy task thật.
+Dữ liệu mẫu minh hoạ nằm ở `knowledge/examples/` (không phải learning data của project bạn).
+
 ## Rules
 
 - Không ghi secret vào Markdown, testcase, report, log hoặc `task.md`.

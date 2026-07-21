@@ -76,6 +76,7 @@ Output:
 
 Phase 1 tasks:
 1. Fetch/read Jira, Confluence, Figma, Swagger/OpenAPI và file local nếu được cung cấp; chỉ đọc sâu phần liên quan tới scope, còn raw content lưu local.
+1b. **Ambiguity Gate (gate cứng):** sau khi đọc nguồn, rà mâu thuẫn/thiếu rule bắt buộc/expected không rõ. Nếu có điểm mơ hồ Critical/High → xuất Q&A đánh số + assumption mặc định ra `reports/phase1-clarifications.md`, ghi `AMBIGUITY_GATE: PENDING` vào `task.md` và DỪNG chờ QA/BA. KHÔNG sinh testcase khi gate PENDING. Chi tiết: `.agent/workflows/phase1_01_prepare_context.md` bước 7.
 2. Phân tích requirement, UI design, API docs và context dự án.
 2b. **UI Conformance Catalog (BẮT BUỘC nếu scope có màn UI)**: với mỗi màn/bảng/danh sách/field trong scope, trích **NGUYÊN VĂN từ FS/Figma** ra `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/requirements/ui_catalog.md` — mỗi phần tử → (tên cột/label chính xác, format dữ liệu, số cột + thứ tự, field bắt buộc, empty-state/placeholder/label nút/tiêu đề, token style nếu có Figma). Đây là **nguồn-sự-thật cho expected của mọi case hiển thị** ở cả Phase 1 (sinh case) lẫn Phase 2 (assert). CẤM lấy expected hiển thị từ build đang chạy (chống oracle tautological). Chi tiết ở mục 12 trong `prompt_templates/phase1/02_gen_testcases.md`.
 3. Sinh hoặc cập nhật manual testcases.
@@ -150,6 +151,7 @@ Yêu cầu testcase output:
 - Không execute automation trong Phase 1.
 
 Điều kiện dừng:
+- **Dừng sớm nếu Ambiguity Gate PENDING**: nếu có mơ hồ Critical/High, dừng ngay sau khi xuất `reports/phase1-clarifications.md` + `AMBIGUITY_GATE: PENDING`; KHÔNG sinh testcase cho tới khi QA/BA resolve.
 - Dừng sau khi sinh/cập nhật testcase Markdown, export Excel, sinh/cập nhật Phase 1 report và cập nhật task log.
 - Chờ review trước khi chuyển Phase 2.
 - Trước khi dừng, tự kiểm tra: testcase có đủ precondition/data/steps/expected, coverage chính >= 80% hoặc có gap rõ, không còn gap Critical/High nếu muốn kết luận PASS, Excel mở được và là source of truth, Jira publish đang ở trạng thái `Pending QA confirmation`, report/task log tiếng Việt chuẩn có dấu, không có placeholder hoặc encoding lỗi.

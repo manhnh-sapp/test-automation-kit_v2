@@ -18,6 +18,37 @@ const {
 const KNOWLEDGE_DIR = path.join(REPO_ROOT, 'knowledge');
 const OUT_DIR = path.join(REPO_ROOT, 'reports');
 const OUT_FILE = path.join(OUT_DIR, 'dashboard.html');
+const BRANDING_FILE = path.join(REPO_ROOT, '.agent', 'config', 'dashboard.branding.json');
+
+// Default = SAPP Academy Design System. Override qua .agent/config/dashboard.branding.json (tùy chọn).
+const DEFAULT_BRANDING = {
+  brandName: 'SAPP Academy',
+  eyebrow: 'SAPP Academy · QA Automation Kit',
+  motto: 'Advance your career',
+  logoPath: 'docs/brand/logo-sapp.png',
+  fontFamily: "'Be Vietnam Pro', system-ui, 'Segoe UI', sans-serif",
+  fontImport: 'https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap',
+  colors: {
+    gold: '#FFB700', gold600: '#E6A300', gold800: '#946800', goldWash: '#FFF9EC',
+    ink: '#1A1916', wash: '#FAF8F3', card: '#FFFFFF',
+    bSubtle: '#E6E0D5', bSoft: '#EFE9DD',
+    t1: '#1A1916', t2: '#57534A', t3: '#79736A',
+    passBg: '#E9F6EF', passFg: '#14613F', failBg: '#FBEAEA', failFg: '#9E2C2C',
+  },
+};
+
+function loadBranding() {
+  try {
+    const override = JSON.parse(fs.readFileSync(BRANDING_FILE, 'utf8'));
+    return {
+      ...DEFAULT_BRANDING,
+      ...override,
+      colors: { ...DEFAULT_BRANDING.colors, ...(override.colors || {}) },
+    };
+  } catch (err) {
+    return DEFAULT_BRANDING; // không có file override → giữ SAPP DS
+  }
+}
 
 function readJsonDir(dir) {
   if (!fs.existsSync(dir)) return [];
@@ -35,10 +66,13 @@ function readJsonDir(dir) {
     .filter(Boolean);
 }
 
-function loadLogo() {
+function loadLogo(logoPath) {
   try {
-    const b64 = fs.readFileSync(path.join(REPO_ROOT, 'docs', 'brand', 'logo-sapp.png')).toString('base64');
-    return `data:image/png;base64,${b64}`;
+    const abs = path.isAbsolute(logoPath) ? logoPath : path.join(REPO_ROOT, logoPath);
+    const b64 = fs.readFileSync(abs).toString('base64');
+    const ext = path.extname(abs).slice(1).toLowerCase() || 'png';
+    const mime = ext === 'svg' ? 'image/svg+xml' : `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+    return `data:${mime};base64,${b64}`;
   } catch (err) {
     return null;
   }
@@ -132,7 +166,9 @@ function dataTable(headers, rows, emptyMsg) {
   return `<div class="tablewrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
-function render({ coverage, moduleRisk, flaky, generatedAt, logo }) {
+function render({ coverage, moduleRisk, flaky, generatedAt, logo, branding }) {
+  const b = branding;
+  const c = branding.colors;
   const totalBugs = moduleRisk.reduce((n, r) => n + r.bugs, 0);
   const totalFails = moduleRisk.reduce((n, r) => n + r.fails, 0);
 
@@ -202,7 +238,7 @@ function render({ coverage, moduleRisk, flaky, generatedAt, logo }) {
       )
     : `<p class="empty">Flaky trend chưa có: ${esc(flaky.reason)}.</p>`;
 
-  const logoChip = logo ? `<span class="logo-chip"><img src="${logo}" alt="SAPP Academy"></span>` : '';
+  const logoChip = logo ? `<span class="logo-chip"><img src="${logo}" alt="${esc(b.brandName)}"></span>` : '';
 
   return `<!doctype html>
 <html lang="vi">
@@ -211,17 +247,17 @@ function render({ coverage, moduleRisk, flaky, generatedAt, logo }) {
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>QA Automation Dashboard — SAPP Academy</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
+@import url('${b.fontImport}');
 :root{
-  --gold:#FFB700; --gold-600:#E6A300; --gold-800:#946800; --gold-wash:#FFF9EC;
-  --ink:#1A1916; --wash:#FAF8F3; --card:#FFFFFF;
-  --b-subtle:#E6E0D5; --b-soft:#EFE9DD;
-  --t1:#1A1916; --t2:#57534A; --t3:#79736A;
-  --pass-bg:#E9F6EF; --pass-fg:#14613F;
-  --fail-bg:#FBEAEA; --fail-fg:#9E2C2C;
+  --gold:${c.gold}; --gold-600:${c.gold600}; --gold-800:${c.gold800}; --gold-wash:${c.goldWash};
+  --ink:${c.ink}; --wash:${c.wash}; --card:${c.card};
+  --b-subtle:${c.bSubtle}; --b-soft:${c.bSoft};
+  --t1:${c.t1}; --t2:${c.t2}; --t3:${c.t3};
+  --pass-bg:${c.passBg}; --pass-fg:${c.passFg};
+  --fail-bg:${c.failBg}; --fail-fg:${c.failFg};
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Be Vietnam Pro',system-ui,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;
+body{font-family:${b.fontFamily};-webkit-font-smoothing:antialiased;
   background:var(--wash);color:var(--t1);padding:28px;line-height:1.4}
 .page{max-width:1120px;margin:0 auto}
 
@@ -298,7 +334,7 @@ code{font-family:Consolas,monospace;font-size:12px;color:var(--t2);word-break:br
 <div class="page">
   <header class="hero">
     ${logoChip}
-    <div class="eyebrow">SAPP Academy · QA Automation Kit</div>
+    <div class="eyebrow">${esc(b.eyebrow)}</div>
     <h1>QA Automation Dashboard</h1>
     <span class="accent"></span>
     <div class="gen">Sinh từ dữ liệu có sẵn trong <code style="color:#EFE9DD">knowledge/</code> · ${esc(generatedAt)}</div>
@@ -329,7 +365,7 @@ code{font-family:Consolas,monospace;font-size:12px;color:var(--t2);word-break:br
     ${flakyHtml}
   </section>
 
-  <div class="foot">SAPP Academy — Advance your career</div>
+  <div class="foot">${esc(b.brandName)} — ${esc(b.motto)}</div>
 </div>
 </body>
 </html>
@@ -342,12 +378,14 @@ function main() {
   const coverage = buildCoverage(historical);
   const moduleRisk = buildModuleRisk(bugs, coverage);
   const flaky = findFlakyReports();
+  const branding = loadBranding();
 
   const html = render({
     coverage,
     moduleRisk,
     flaky,
-    logo: loadLogo(),
+    branding,
+    logo: loadLogo(branding.logoPath),
     generatedAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
   });
 

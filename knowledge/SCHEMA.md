@@ -22,8 +22,12 @@ knowledge/
 ├── locators/             # lịch sử locator từng bị heal (Locator Healing — Giai đoạn 2 mới ghi)
 ├── historical_execution/ # snapshot pass/fail theo module theo thời gian (input cho Dashboard)
 ├── index.json            # index phẳng: tra cứu theo module/tag
+├── examples/             # dữ liệu MẪU minh hoạ (không phải learning data thật — xem examples/README.md)
 └── SCHEMA.md             # file này
 ```
+
+> `knowledge/` (live) khởi tạo **rỗng** cho dự án mới; `learning_recorder` điền dần khi chạy task thật.
+> Muốn xem Dashboard có số liệu: copy `examples/*` vào các thư mục tương ứng rồi `npm run dashboard`.
 
 ## `bugs/<TASK_KEY>__<slug>.json`
 

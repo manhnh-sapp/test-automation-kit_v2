@@ -30,6 +30,7 @@
    - Không publish Jira trong bước này.
    - Step publish riêng là [phase1_04_auto_publish_jira.md](phase1_04_auto_publish_jira.md), chỉ chạy sau khi QA xác nhận Excel.
 6. Cập nhật `snapshot_context.json`, `phase1-summary.md` và `task.md`.
+6b. Sinh **Traceability Matrix** tường minh `<TASK_OUTPUT_DIR>/reports/traceability-matrix.md` — bảng `| REQ-ID | Requirement/AC | Risk | TC ID (trace) | Status |` (1 dòng/requirement in-scope; `Status` ∈ `Covered`/`Partial`/`Gap`). Hỗ trợ Gap Analysis: requirement `Gap`/`Partial` mức Critical/High phải khớp `### High/Critical Gaps` trong summary. Đây là artifact riêng, chi tiết hơn Coverage Matrix tóm tắt trong summary.
 7. Nếu `### Precondition Execution Matrix` còn dòng `Needs hook`/`Manual-only`, sinh `reports/capability-request.md` (handoff Dev/BE/DevOps): gom capability còn thiếu (loại `test_hook`/`account`/`sandbox`/`api`/`config`, endpoint/tên đề xuất, PRE + TC bị chặn, owner). KHÔNG dùng DB để thay thế. Format chi tiết ở [prompt_templates/phase1/02_gen_testcases.md](../../prompt_templates/phase1/02_gen_testcases.md); contract test hook ở [tests/support/setup/hooks/README.md](../../tests/support/setup/hooks/README.md).
 
 ## Quality Gate
@@ -52,6 +53,7 @@
 | Testcase Markdown final | `<TASK_OUTPUT_DIR>/test-cases/` |
 | Testcase Excel | Cùng thư mục testcase |
 | Coverage/Risk summary | `<TASK_OUTPUT_DIR>/reports/phase1-summary.md` |
+| Traceability matrix (REQ × TC × Risk × Status) | `<TASK_OUTPUT_DIR>/reports/traceability-matrix.md` |
 | Capability / Test-Hook Request | `<TASK_OUTPUT_DIR>/reports/capability-request.md` (khi còn `Needs hook`/`Manual-only`) |
 | Snapshot context | `<TASK_OUTPUT_DIR>/test-cases/snapshot_context.json` |
 | Task tracking | `<TASK_OUTPUT_DIR>/task.md` |

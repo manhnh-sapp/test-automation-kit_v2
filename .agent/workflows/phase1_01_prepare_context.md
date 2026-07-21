@@ -26,13 +26,19 @@
    - `<TASK_OUTPUT_DIR>/reports/phase1-summary.md` nếu đã có
 5. Chỉ fetch Jira/Confluence/Figma/Swagger khi artifact local thiếu hoặc user yêu cầu refresh.
 6. Xác định in-scope requirement/business rule/API behavior.
-7. Ghi assumption/open question nếu requirement mâu thuẫn hoặc thiếu dữ liệu bắt buộc.
+7. **Ambiguity Gate (BẮT BUỘC — gate cứng, chặn sinh testcase):**
+   - Rà mâu thuẫn / thiếu rule bắt buộc / expected result không rõ / thiếu data-behavior để sinh case executable.
+   - Nếu CÓ điểm mơ hồ mức **Critical/High** (ảnh hưởng core flow, tính tiền/bảo mật, hoặc không thể sinh expected đúng): xuất **danh sách Q&A đánh số** `Q1, Q2...` vào `<TASK_OUTPUT_DIR>/reports/phase1-clarifications.md`, mỗi câu gồm: câu hỏi rõ ràng + **assumption mặc định đề xuất** (điều agent sẽ giả định nếu QA đồng ý) + phần scope bị chặn nếu chưa trả lời.
+   - Ghi `AMBIGUITY_GATE: PENDING` vào `task.md` và **DỪNG** — chờ QA/BA trả lời hoặc xác nhận chấp nhận assumption.
+   - Chỉ khi mọi câu Critical/High đã `RESOLVED` (có câu trả lời, hoặc QA tick chấp nhận assumption) mới đổi `AMBIGUITY_GATE: RESOLVED` và cho phép sang `phase1_02`.
+   - Điểm mơ hồ Medium/Low KHÔNG chặn: ghi assumption + đưa vào Coverage Gaps như hiện tại, vẫn sinh case.
 
 ## Rules
 
 - Không sửa `.env` chung khi có thể truyền env theo command.
 - Không fetch lại toàn bộ tài liệu nếu snapshot/local summary đã đủ.
 - Không tự chuyển sang `partial-rerun`; chỉ dùng nhánh đó khi user yêu cầu xử lý tài liệu đã đổi.
+- **KHÔNG tự giả định qua mơ hồ Critical/High rồi sinh case** — phải qua Ambiguity Gate (đối lập với "assume + note" cho mọi mức). Assumption chỉ được tự áp cho mức Medium/Low.
 
 ## Outputs
 
@@ -40,4 +46,5 @@
 |---|---|
 | Requirement artifact/cache | `<TASK_OUTPUT_DIR>/requirements/` |
 | Context summary | `<TASK_OUTPUT_DIR>/task.md` hoặc `phase1-summary.md` |
-| Open questions | `task.md` hoặc Phase 1 summary |
+| Ambiguity clarifications (Q&A) | `<TASK_OUTPUT_DIR>/reports/phase1-clarifications.md` (khi gate PENDING) |
+| Trạng thái gate | `task.md`: `AMBIGUITY_GATE: PENDING/RESOLVED` |
