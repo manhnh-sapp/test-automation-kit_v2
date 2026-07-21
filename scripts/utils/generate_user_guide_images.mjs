@@ -25,7 +25,7 @@ const boards = [
     steps: [
       { icon: 'IN', c: C.info, title: '1.1 Requirement intake', body: 'Jira, Confluence, Figma, Swagger' },
       { icon: 'AI', c: C.info, title: '1.2 AI generate testcase', body: 'Sinh testcase và test data draft' },
-      { icon: 'XL', c: C.success, title: '1.3 Excel source of truth', body: 'QA review trên file Excel' },
+      { icon: 'XL', c: C.success, title: '1.3 Excel (SoT gen/publish)', body: 'QA review trên Excel; Phase 2 execute từ Xray' },
       { icon: 'OK', gate: true, title: 'GATE: QA CONFIRMATION', body: 'Approve trước khi publish Jira/Xray' },
       { icon: 'XR', c: C.amber, title: '1.4 Auto Publish Jira/Xray', body: 'Test issue + optional Test Set' },
       { icon: 'EX', c: C.info, title: '1.5 Execute từ Xray', body: 'Phase 2 mặc định kéo testcase từ Xray' },
@@ -52,7 +52,7 @@ const boards = [
     inputs: ['PROJECT_OUTPUT_DIR', 'TASK_KEY', 'RUN_ID khi cần', 'task.md', 'Excel baseline'],
     steps: [
       { icon: 'RQ', c: C.info, title: 'requirements/', body: 'Jira, Confluence, Figma, Swagger snapshot' },
-      { icon: 'TC', c: C.success, title: 'test-cases/', body: 'Markdown + Excel source of truth' },
+      { icon: 'TC', c: C.success, title: 'test-cases/', body: 'Markdown + Excel (SoT gen/publish) + from-xray/' },
       { icon: 'RP', c: C.amber, title: 'reports/', body: 'Phase 1, execution, publish summary' },
       { icon: 'EV', c: C.ink, title: 'test-results/', body: 'Screenshot, video, trace, response' },
       { icon: 'CH', c: C.info, title: 'change/regen/', body: 'Partial rerun diff, impact, approved merge' },
@@ -67,12 +67,12 @@ const boards = [
       { icon: 'SRC', c: C.info, title: '1.1 AI đọc source', body: 'Requirement, rule, design, API' },
       { icon: 'AMB', gate: true, title: 'GATE: AMBIGUITY', body: 'Mơ hồ Critical/High → hỏi trước, chặn sinh TC' },
       { icon: 'TC', c: C.info, title: '1.2 Generate testcase', body: 'Group business flow; RBT density theo risk band' },
-      { icon: 'XL', c: C.success, title: '1.3 Export Excel', body: 'Excel là source of truth' },
+      { icon: 'XL', c: C.success, title: '1.3 Export Excel', body: 'Excel SoT khi gen/publish (execute từ Xray)' },
       { icon: 'QA', c: C.amber, title: '1.4 QA review + risk gate', body: 'Coverage, risk depth, expected, gap' },
       { icon: 'OK', gate: true, title: 'GATE: QA APPROVAL', body: 'Chỉ publish khi Excel đã approve' },
       { icon: 'XR', c: C.ink, title: '1.5 Publish Xray', body: 'Test issue + optional Test Set' },
     ],
-    outputs: ['Testcase Markdown', 'Excel source of truth', 'Coverage summary', 'Jira publish summary', 'Xray Test/Test Set'],
+    outputs: ['Testcase Markdown', 'Excel (SoT gen/publish)', 'Coverage summary', 'Jira publish summary', 'Xray Test/Test Set'],
   },
   {
     file: 'phase2-execution-loop.png', number: '2', title: 'Phase 2', role: 'Execution',

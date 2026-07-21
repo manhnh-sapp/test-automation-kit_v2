@@ -88,7 +88,7 @@ Phase 1 tasks:
    `node scripts/convert_excel/md_to_xlsx.js <testcase.md> <testcase.xlsx>`
    Ví dụ:
    `node scripts/convert_excel/md_to_xlsx.js <PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/test-cases/[TESTCASE_BASENAME].md <PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/test-cases/[TESTCASE_BASENAME].xlsx`
-8. Coi Excel đã export là source of truth của testcase và chuẩn bị trạng thái `Pending QA confirmation` cho step Auto Publish Jira.
+8. Coi Excel đã export là source of truth khi gen/publish (Phase 2 execute mặc định từ Xray) và chuẩn bị trạng thái `Pending QA confirmation` cho step Auto Publish Jira.
    - Không publish Jira trong prompt này.
    - Sau khi QA xác nhận Excel/testcase đạt, chạy prompt riêng:
      `prompt_templates/phase1/04_auto_publish_jira.md`
@@ -154,7 +154,7 @@ Yêu cầu testcase output:
 - **Dừng sớm nếu Ambiguity Gate PENDING**: nếu có mơ hồ Critical/High, dừng ngay sau khi xuất `reports/phase1-clarifications.md` + `AMBIGUITY_GATE: PENDING`; KHÔNG sinh testcase cho tới khi QA/BA resolve.
 - Dừng sau khi sinh/cập nhật testcase Markdown, export Excel, sinh/cập nhật Phase 1 report và cập nhật task log.
 - Chờ review trước khi chuyển Phase 2.
-- Trước khi dừng, tự kiểm tra: testcase có đủ precondition/data/steps/expected, coverage chính >= 80% hoặc có gap rõ, không còn gap Critical/High nếu muốn kết luận PASS, Excel mở được và là source of truth, Jira publish đang ở trạng thái `Pending QA confirmation`, report/task log tiếng Việt chuẩn có dấu, không có placeholder hoặc encoding lỗi.
+- Trước khi dừng, tự kiểm tra: testcase có đủ precondition/data/steps/expected, coverage chính >= 80% hoặc có gap rõ, không còn gap Critical/High nếu muốn kết luận PASS, Excel mở được và là source of truth khi gen/publish (Phase 2 execute mặc định từ Xray), Jira publish đang ở trạng thái `Pending QA confirmation`, report/task log tiếng Việt chuẩn có dấu, không có placeholder hoặc encoding lỗi.
 - Trước khi dừng, chạy `Self-check vét cạn biên` (mục 18 trong `prompt_templates/phase1/02_gen_testcases.md`): mỗi input đủ EP/BVA; filter/list có biên ngày/tháng/năm nhuận; export verify cấu trúc file + mapping + empty + dataset lớn; side-effect có negative; UI guard có cross-layer check; entity có status có đủ ma trận status x action; computed field có TC derivation + biên; nếu có Figma thì component chính có TC design compliance (token màu/font/radius/spacing/alignment); **mỗi màn có bảng/field có case Display Conformance (tên cột exact + format + số cột/thứ tự + field bắt buộc + empty-state, expected từ `ui_catalog.md`/tài liệu — mục 12)**; **logic/tính toán có oracle giá trị cụ thể + so khớp/delta dữ liệu (mục 13); field trống nghi ngờ đối chiếu response BE, phân biệt null/rỗng/thiếu/0 (mục 14); IDOR/privilege/injection/mass-assignment/data-exposure (mục 15); SLA/large-dataset/concurrent khi có ngưỡng (mục 16); change impact: story đụng bề mặt dùng chung (data/endpoint/component/rule/status/permission) → regression smoke cho feature bị ảnh hưởng + backward-compat, cái nghi ghi `QA confirm` (mục 17)**. Mục thiếu phải ghi vào Coverage Gaps.
 
 Extra instruction:

@@ -14,7 +14,7 @@ skills:
 
 ## Mục Đích
 
-Sinh bộ testcase chi tiết, có trace requirement, có phân nhóm chức năng, có coverage/risk review và có file Excel source of truth. Auto Publish Jira là step riêng trong phạm vi Phase 1, chỉ chạy sau khi QA xác nhận Excel.
+Sinh bộ testcase chi tiết, có trace requirement, có phân nhóm chức năng, có coverage/risk review và có file Excel source of truth khi gen/publish (Phase 2 execute từ Xray). Auto Publish Jira là step riêng trong phạm vi Phase 1, chỉ chạy sau khi QA xác nhận Excel.
 
 ## Khi Nào Dùng
 

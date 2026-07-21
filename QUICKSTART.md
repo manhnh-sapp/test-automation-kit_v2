@@ -90,11 +90,11 @@ Requirement
 ↓
 Generate Testcase
 ↓
-Excel (Source of truth)
+Excel (Source of truth khi gen/publish)
 ↓
 QA xác nhận
 ↓
-Auto Publish Jira
+Auto Publish Jira → Xray (nguồn execute Phase 2)
 ```
 
 Auto Publish Jira là step riêng trong phạm vi Phase 1. Excel là source of truth khi gen/publish. Khi chạy Phase 2, agent **mặc định lấy nguồn từ Xray** (`TESTCASE_SOURCE=xray`: kéo về canonical local `test-cases/from-xray/*.xlsx` rồi execute) — nên publish là bước cần trước Phase 2; đặt `TESTCASE_SOURCE=excel` để dùng Excel local.

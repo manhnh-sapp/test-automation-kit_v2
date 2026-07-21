@@ -23,7 +23,7 @@ flowchart TD
 
 | Layer | Purpose |
 |---|---|
-| Phase 1 | Đọc requirement/design/API và sinh testcase Markdown + Excel + coverage report + Setup Strategy contract (PRE-NN) + Precondition Execution Matrix; Excel là source of truth và là input cho step publish sau QA confirmation. |
+| Phase 1 | Đọc requirement/design/API và sinh testcase Markdown + Excel + coverage report + Setup Strategy contract (PRE-NN) + Precondition Execution Matrix; Excel là source of truth **khi gen/publish** và là input cho step publish sau QA confirmation (Phase 2 execute mặc định từ Xray). |
 | Jira Testcase Publish | Step riêng trong phạm vi Phase 1: sau khi QA xác nhận Excel, đọc Excel canonical, tạo/cập nhật Xray `Test` issue, nhóm chức năng qua subfolder Test Repository, gắn label tối thiểu (marker `automation-testcase` + khóa dedup `task-*`/`tc-*`) và link về Jira Story/Task như `SAPP-3255` (mặc định không tạo Test Set, không label group/layer/risk/priority). Excel là source of truth khi authoring/publish; Phase 2 execute mặc định lấy nguồn từ Xray (`TESTCASE_SOURCE=xray`). |
 | Xray Test Lifecycle Cleanup | Step thuộc nhánh phụ `partial-rerun`: khi Excel thay đổi sau publish và đã qua Human Review, đối chiếu TC ID với Xray `Test`, đánh dấu stale bằng label cleanup, restore active TC nếu cần và chỉ unlink khỏi Story/Task khi QA xác nhận; không hard delete Test issue. |
 | Phase 2 | Đọc testcase từ nguồn canonical local (mặc định kéo từ Xray, `TESTCASE_SOURCE=xray`; `excel` là opt-out), chạy Precondition Resolution Pass qua UI/API public-business contract, fixture hoặc test hook nếu có → generate/update Playwright/API spec, execute phần automatable, capture evidence và report. Case cần DB/backend internal state được chuyển manual/semi-auto. |
@@ -46,10 +46,10 @@ flowchart TD
 ```mermaid
 flowchart TD
     A[Requirement] --> B[Generate Testcase]
-    B --> C["Excel (Source of truth)"]
+    B --> C["Excel (SoT khi gen/publish)"]
     C --> D[QA Confirmation]
-    D --> E[Auto Publish Jira]
-    E --> F[Phase 2]
+    D --> E[Auto Publish Jira → Xray]
+    E --> F["Phase 2 (execute từ Xray)"]
     F --> G[Execution]
     G --> H[Bug Triage]
     H --> I[Jira Bug]
@@ -142,7 +142,7 @@ test-automation-kit/
 
 | Phase | Input | Output | Gate |
 |---|---|---|---|
-| Phase 1 | Jira, Confluence, Figma, Swagger, file local | Testcase Markdown, Excel source of truth, coverage summary, Setup Strategy contract, Precondition Execution Matrix, `task.md` | Coverage/risk review đủ rõ; mọi precondition có contract auto/manual rõ. |
+| Phase 1 | Jira, Confluence, Figma, Swagger, file local | Testcase Markdown, Excel source of truth (khi gen/publish), coverage summary, Setup Strategy contract, Precondition Execution Matrix, `task.md` | Coverage/risk review đủ rõ; mọi precondition có contract auto/manual rõ. |
 | Jira Testcase Publish | Excel source of truth + QA confirmation | Xray `Test` issues/mirror + publish summary | Step riêng trong Phase 1; publish thật chỉ sau khi QA approve. |
 | Xray Test Cleanup | Excel source of truth sau partial rerun + Human Review/QA cleanup confirmation | Cleanup summary; stale Test được label deprecated/out-of-scope/stale-from-excel; optional unlink | Nhánh phụ `partial-rerun`, không hard delete Xray Test issue. |
 | Phase 2 | Testcase canonical local (mặc định Xray via `TESTCASE_SOURCE=xray`; Excel là opt-out), Setup Strategy contract, env, app/API URLs, credentials | Playwright results, evidence, execution summary | Execute phần đủ điều kiện qua UI/API; phần cần DB/backend state ghi manual/semi-auto; `setup_failure`/`BLOCKED_SETUP`/`SKIP_SETUP` không log Jira. |
