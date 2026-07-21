@@ -24,6 +24,8 @@
 
 CI nạp qua **env từ secrets**, KHÔNG tạo file `.env` (đúng rule kit: không commit secret/token/cookie).
 
+> **Khai nhanh (GitLab):** `bash scripts/ci/set-gitlab-variables.sh` (dry-run) → `--apply` để set thật. Script đọc `.env.local` (+ `--ops-from <profile>` cho OPS) và đẩy qua `glab` — chạy **trên máy bạn** sau `glab auth login`; token/password set masked+protected, KHÔNG in giá trị. Cần `glab` cài sẵn.
+
 ## An toàn (bắt buộc)
 
 - **Không auto publish/log Jira**: publish testcase / log bug thật cần `--qa-approved` (hành động local). CI chỉ dry-run. Muốn publish thật trong CI → tạo **GitHub Environment có required reviewers** rồi mới thêm job publish vào đó.
