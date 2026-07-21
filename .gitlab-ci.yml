@@ -22,7 +22,7 @@ static-check:
     - node -e "['knowledge/index.json','.agent/config/risk_model.example.json','.agent/config/dashboard.branding.example.json'].forEach(f=>{JSON.parse(require('fs').readFileSync(f,'utf8'));console.log('JSON OK',f)})"
     - npm run dashboard
     - npm run risk
-    - if node scripts/qa/security_check.js --catalog .agent/config/dashboard.branding.example.json; then echo "LỖI: security phải từ chối khi thiếu --confirm-nonprod"; exit 1; else echo "security guard OK"; fi
+    - 'if node scripts/qa/security_check.js --catalog .agent/config/dashboard.branding.example.json; then echo "security guard PHAI tu choi khi thieu --confirm-nonprod"; exit 1; else echo "security guard OK"; fi'
 
 # ---- Integration check (MANUAL, dry-run — KHÔNG publish/log Jira thật) ----
 integration-check:
@@ -37,9 +37,11 @@ integration-check:
 regression:
   stage: regression
   image: mcr.microsoft.com/playwright:v1.60.0-noble   # đổi tag khớp @playwright/test trong package.json
+  # Chỉ chạy khi scheduled (nightly) hoặc khi bấm "Run pipeline" trên UI (source=web).
+  # KHÔNG chạy/khối trên push thường → push chỉ có static-check.
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
-    - when: manual
+    - if: '$CI_PIPELINE_SOURCE == "web"'
   parallel: 4
   variables:
     PROJECT_OUTPUT_DIR: "outputs/ci"          # playwright.config THROW nếu thiếu 2 biến này
@@ -57,8 +59,15 @@ regression:
 merge-report:
   stage: report
   image: mcr.microsoft.com/playwright:v1.60.0-noble
-  when: always
-  needs: [regression]
+  # Cùng điều kiện với regression (schedule/web); trên push cả 2 đều vắng → chỉ static-check chạy.
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: always
+  needs:
+    - job: regression
+      artifacts: true
   script:
     - npm ci --cache .npm --prefer-offline
     - npx playwright merge-reports --reporter=html blob-report/ || echo "no blob to merge"
