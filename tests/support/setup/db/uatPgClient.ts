@@ -26,14 +26,11 @@ import { Client, type ClientConfig, type QueryResultRow } from 'pg';
  * Vì user full quyền, TUYỆT ĐỐI không nới lint để "chạy nhanh" — chỉ chạy đúng SELECT chẩn đoán.
  */
 
-/** Env kết nối bắt buộc — thiếu bất kỳ cái nào ⇒ coi như chưa bật DB verify (dormant). */
-const REQUIRED_KEYS = [
-  'LIB_MASTER_DB_HOST',
-  'LIB_MASTER_DB_PORT',
-  'LIB_MASTER_DB_NAME',
-  'LIB_MASTER_DB_USERNAME',
-  'LIB_MASTER_DB_PASSWORD',
-] as const;
+/** Prefix env mặc định (DB1). DB khác dùng prefix 'LIB_MASTER_DB2', 'LIB_MASTER_DB3'… (so nhiều bản). */
+export const DEFAULT_DB_PREFIX = 'LIB_MASTER_DB';
+/** Env kết nối bắt buộc theo prefix — thiếu bất kỳ cái nào ⇒ coi như chưa bật (dormant). */
+const requiredKeys = (prefix: string) =>
+  [`${prefix}_HOST`, `${prefix}_PORT`, `${prefix}_NAME`, `${prefix}_USERNAME`, `${prefix}_PASSWORD`] as const;
 
 export interface UatDbConfig {
   host: string;
@@ -65,38 +62,41 @@ function splitCsv(value: string | undefined): string[] {
 }
 
 /** true nếu đủ env kết nối để dùng DB verify (caller có thể skip gracefully nếu false). */
-export function isUatDbConfigured(): boolean {
-  return REQUIRED_KEYS.every((k) => (process.env[k] ?? '').trim() !== '');
+export function isUatDbConfigured(prefix: string = DEFAULT_DB_PREFIX): boolean {
+  return requiredKeys(prefix).every((k) => (process.env[k] ?? '').trim() !== '');
 }
 
-/** Đọc + validate config từ env. Ném `UatDbGuardError` nếu thiếu env kết nối/không hợp lệ. */
-export function loadUatDbConfig(): UatDbConfig {
-  const missing = REQUIRED_KEYS.filter((k) => (process.env[k] ?? '').trim() === '');
+/**
+ * Đọc + validate config từ env theo prefix. Ném `UatDbGuardError` nếu thiếu env kết nối/không hợp lệ.
+ * Kết nối (HOST/PORT/NAME/USERNAME/PASSWORD) lấy đúng theo prefix.
+ * Guard/tuỳ chọn (ALLOWED_HOSTS/DENY_HOST_PATTERNS/SSL/STATEMENT_TIMEOUT_MS) theo prefix, fallback về LIB_MASTER_DB_*.
+ */
+export function loadUatDbConfig(prefix: string = DEFAULT_DB_PREFIX): UatDbConfig {
+  const missing = requiredKeys(prefix).filter((k) => (process.env[k] ?? '').trim() === '');
   if (missing.length) {
     throw new UatDbGuardError(
       `Thiếu env kết nối: ${missing.join(', ')}. DB verify chỉ chạy khi đã cấu hình kho UAT.`,
     );
   }
+  const opt = (suffix: string) =>
+    process.env[`${prefix}_${suffix}`] ?? process.env[`${DEFAULT_DB_PREFIX}_${suffix}`];
 
-  const port = Number.parseInt(process.env.LIB_MASTER_DB_PORT as string, 10);
+  const port = Number.parseInt(process.env[`${prefix}_PORT`] as string, 10);
   if (!Number.isInteger(port) || port <= 0 || port > 65535) {
-    throw new UatDbGuardError(`LIB_MASTER_DB_PORT không hợp lệ: "${process.env.LIB_MASTER_DB_PORT}".`);
+    throw new UatDbGuardError(`${prefix}_PORT không hợp lệ: "${process.env[`${prefix}_PORT`]}".`);
   }
 
-  const statementTimeoutMs = Number.parseInt(
-    process.env.LIB_MASTER_DB_STATEMENT_TIMEOUT_MS ?? '5000',
-    10,
-  );
+  const statementTimeoutMs = Number.parseInt(opt('STATEMENT_TIMEOUT_MS') ?? '5000', 10);
 
   return {
-    host: (process.env.LIB_MASTER_DB_HOST as string).trim(),
+    host: (process.env[`${prefix}_HOST`] as string).trim(),
     port,
-    database: (process.env.LIB_MASTER_DB_NAME as string).trim(),
-    user: (process.env.LIB_MASTER_DB_USERNAME as string).trim(),
-    password: process.env.LIB_MASTER_DB_PASSWORD as string,
-    allowedHosts: splitCsv(process.env.LIB_MASTER_DB_ALLOWED_HOSTS),
-    denyPatterns: splitCsv(process.env.LIB_MASTER_DB_DENY_HOST_PATTERNS),
-    ssl: (process.env.LIB_MASTER_DB_SSL ?? '').trim().toLowerCase() === 'true',
+    database: (process.env[`${prefix}_NAME`] as string).trim(),
+    user: (process.env[`${prefix}_USERNAME`] as string).trim(),
+    password: process.env[`${prefix}_PASSWORD`] as string,
+    allowedHosts: splitCsv(opt('ALLOWED_HOSTS')),
+    denyPatterns: splitCsv(opt('DENY_HOST_PATTERNS')),
+    ssl: (opt('SSL') ?? '').trim().toLowerCase() === 'true',
     statementTimeoutMs:
       Number.isInteger(statementTimeoutMs) && statementTimeoutMs > 0 ? statementTimeoutMs : 5000,
   };
@@ -162,9 +162,10 @@ export function assertReadOnlySql(sql: string): void {
 export async function queryUatReadonly<T extends QueryResultRow = QueryResultRow>(
   sql: string,
   params: unknown[] = [],
+  opts: { dbPrefix?: string } = {},
 ): Promise<T[]> {
   assertReadOnlySql(sql);
-  const cfg = loadUatDbConfig();
+  const cfg = loadUatDbConfig(opts.dbPrefix ?? DEFAULT_DB_PREFIX);
   assertHostGuards(cfg);
 
   const clientConfig: ClientConfig = {
