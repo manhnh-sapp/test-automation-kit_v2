@@ -146,3 +146,36 @@ npm run seed:knowledge:apply -- --since 2025-01-01             # ghi thật vào
 | `--fallback-module <name>` | Gán module này khi bug không có component/label (mặc định: bỏ qua). |
 
 **An toàn:** read-only (JQL/GraphQL query, KHÔNG tạo/sửa issue) · DRY-RUN mặc định · mask email/SĐT · idempotent (dedup theo bug id) · đánh dấu `source: "jira-seed"` (xem `knowledge/SCHEMA.md`). Bug chỉ seed khi resolution = fix thật. **QA soi bảng map module trước khi `--apply`** (confidence trong `risk_score` bão hoà nhanh → map sai làm risk lệch).
+
+---
+
+# output_gate.js — Gate chất lượng output THỰC THI (RULE_GLOBAL)
+
+Biến rule chất lượng máy-kiểm-được thành check THỰC THI, tự chạy trước khi push/convert → **không push/convert được payload sai** (agent tự sửa trong session, không chờ user nhắc). Rule ở `scripts/qa/lib/output_rules.js` (hàm thuần, tái dùng).
+
+| Mode | Chặn gì | Wired tự chạy ở |
+|---|---|---|
+| `test-execution` | comment run-on/debug · step thiếu status/ảnh · evidence không phải ảnh/video · case phức tạp thiếu video | `push_test_execution.js` (trước push) |
+| `bug` | bug thiếu ảnh/video · thiếu video case phức tạp · KQ run-on | `bug_reporter.js` (loop tạo bug) |
+| `gen-testcase` | KQ mong đợi số ≠ bước · gộp range `1-2.` · chung chung ("thành công"/"đúng"); `;`-nhồi-ý = **cảnh báo** (`--strict` để chặn) | `md_to_xlsx.js` (convert) |
+
+```bash
+npm run gate:output -- --status <testcase-status.json>       # test-execution (thêm --fix tự dọn comment)
+npm run gate:gen-testcase -- --dir <test-cases/>             # gen-testcase
+node scripts/qa/output_gate.js --mode bug --preview <bugs.json>
+```
+
+STRICT mặc định BẬT (tắt: `--lenient`/`QA_STRICT=0`/`XRAY_STRICT=0`); QA cố ý bỏ qua: `--qa-approved` (có log).
+
+## Hook harness (tuỳ chọn, tự động cao nhất)
+
+`scripts/qa/hooks/gate_on_write.js` = PostToolUse hook: mỗi khi agent GHI `testcase-status.json` hoặc `test-cases/*.md`, tự chạy gate lên file đó, vi phạm CHẶN → feedback về agent. Bật ở **local** `.claude/settings.json` (thư mục `.claude/` bị gitignore nên KHÔNG share qua git — mỗi máy tự thêm; runner script đã committed):
+
+```jsonc
+{ "hooks": { "PostToolUse": [ {
+  "matcher": "Write|Edit",
+  "hooks": [ { "type": "command", "command": "node scripts/qa/hooks/gate_on_write.js", "timeout": 60 } ]
+} ] } }
+```
+
+Thêm xong mở `/hooks` một lần (hoặc restart) để harness nạp settings mới.
