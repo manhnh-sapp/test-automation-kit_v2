@@ -26,6 +26,7 @@
    ```powershell
    node scripts/convert_excel/md_to_xlsx.js <testcase.md> <testcase.xlsx>
    ```
+   - **Gate gen-testcase TỰ CHẠY khi convert** (RULE_GLOBAL + prompt 02 §6): CHẶN (không tạo xlsx) nếu "Kết quả mong đợi" không khớp số bước / gộp range `1-2.` / ghi trơ "thành công"/"đúng"; `;`-nhồi-ý chỉ cảnh báo. **Gate CHẶN → tự sửa Markdown rồi convert lại tới khi PASS, không chờ user nhắc.** Kiểm trước khi convert: `npm run gate:gen-testcase -- --dir <test-cases/>`.
 5. Ghi trạng thái `Jira testcase publish: Pending QA confirmation` trong `task.md`.
    - Không publish Jira trong bước này.
    - Step publish riêng là [phase1_04_auto_publish_jira.md](phase1_04_auto_publish_jira.md), chỉ chạy sau khi QA xác nhận Excel.

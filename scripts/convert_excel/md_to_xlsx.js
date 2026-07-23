@@ -2,6 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const outputGate = require("../qa/output_gate"); // gate gen-testcase (RULE_GLOBAL §6: KQ khớp bước, cấm gộp range/chung chung)
 
 let ExcelJS;
 try {
@@ -412,6 +413,22 @@ async function main() {
   if (tables.length === 0) {
     console.error("No testcase markdown table found.");
     process.exit(1);
+  }
+
+  // GATE gen-testcase: CHẶN convert nếu "Kết quả mong đợi" không khớp số bước / gộp range / chung chung.
+  // `;`-packing chỉ cảnh báo (không chặn). Bỏ qua: --lenient / QA_STRICT=0 / --qa-approved.
+  {
+    const LENIENT = args.includes("--lenient") || process.env.QA_STRICT === "0";
+    const QA_APPROVED = args.includes("--qa-approved");
+    const parsed = outputGate.parseTestcaseTable(fs.readFileSync(inputPath, "utf8"));
+    const problems = []; const warnings = [];
+    for (const r of parsed.rows) { const g = outputGate.gateTestcaseRow(r); problems.push(...g.problems); warnings.push(...g.warnings); }
+    if (warnings.length) console.warn(`[gate gen-testcase] ⚠ ${warnings.length} cảnh báo (nên tách ý ";" thành dòng "- "):\n  ~ ${warnings.slice(0, 15).join("\n  ~ ")}${warnings.length > 15 ? `\n  … +${warnings.length - 15} nữa` : ""}`);
+    if (problems.length) {
+      const msg = `[gate gen-testcase] ✗ ${problems.length} vi phạm CHẶN (RULE_GLOBAL + prompt 02 §6):\n  - ${problems.join("\n  - ")}\n→ Sửa "Kết quả mong đợi" cho khớp từng bước (mỗi bước 1 số) rồi convert lại.`;
+      if (!LENIENT && !QA_APPROVED) { console.error(msg); process.exit(1); }
+      console.warn(`${msg}\n  [${LENIENT ? "--lenient/QA_STRICT=0" : "--qa-approved"}] bỏ qua gate — vẫn convert.`);
+    }
   }
 
   const contractTables = parseSetupContractTables(inputPath);

@@ -119,9 +119,31 @@ function lintBugHeadings(headings = []) {
   return problems;
 }
 
+// ---- Gen testcase: cột "Các bước thực hiện" / "Kết quả mong đợi" (RULE_GLOBAL + prompt 02 §6) ----
+
+// Gộp range kiểu "1-2." / "2–3.)" ở đầu dòng (bên trong cell ngăn bằng <br>).
+const RANGE_GROUP = /(?:^|<br\s*\/?>|\n|\s)\d+\s*[-–—]\s*\d+\s*[.)]/;
+const hasRangeGrouping = (t) => RANGE_GROUP.test(String(t || ''));
+
+// Số thứ tự ở đầu mỗi dòng (tách theo <br>) — để so bước vs kết quả.
+function leadingNumbers(cell) {
+  return String(cell || '').split(/<br\s*\/?>|\r?\n/)
+    .map((l) => { const m = l.trim().match(/^(\d+)\s*[.)]/); return m ? Number(m[1]) : null; })
+    .filter((n) => n != null);
+}
+
+// Kết quả mong đợi CHUNG CHUNG (cấm ghi trơ mỗi "thành công"/"đúng"/"báo lỗi"...).
+const VAGUE_EXPECTED = /^(thành công|thất bại|báo lỗi|có lỗi|hiển thị đúng|hiển thị bình thường|hoạt động (bình thường|đúng)|đúng|ok|pass|thành công\.)$/i;
+function vagueExpectedLines(cell) {
+  return String(cell || '').split(/<br\s*\/?>|\r?\n/)
+    .map((l) => l.replace(/^\s*(?:\d+[.)]|[-*•])\s*/, '').trim())
+    .filter((l) => l && VAGUE_EXPECTED.test(l));
+}
+
 module.exports = {
   isVisualEvidence, isVideoEvidence,
   hasDebugTokens, looksRunOn, splitIdeas, looksComplex,
   cleanComment, lintComment, lintEvidence, lintBugHeadings,
+  hasRangeGrouping, leadingNumbers, vagueExpectedLines,
   BUG_SECTIONS, RAW_MONEY,
 };

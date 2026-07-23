@@ -116,9 +116,77 @@ function mainBug() {
   console.log('\n[gate] BLOCK.'); process.exit(1);
 }
 
+// ---- gen-testcase: parse bảng testcase 9 cột trong Markdown ----
+function parseTestcaseTable(md) {
+  const lines = String(md || '').split(/\r?\n/);
+  const hi = lines.findIndex((l) => l.includes('|') && /TC ID/i.test(l) && /Kết quả mong đợi/i.test(l));
+  if (hi < 0) return { rows: [], found: false };
+  const cols = lines[hi].split('|').map((c) => c.trim());
+  const idx = (name) => cols.findIndex((c) => c.toLowerCase() === name.toLowerCase());
+  const tcI = idx('TC ID'); const stepI = idx('Các bước thực hiện'); const expI = idx('Kết quả mong đợi');
+  const rows = [];
+  for (let i = hi + 1; i < lines.length; i++) {
+    const l = lines[i];
+    if (!/^\s*\|/.test(l)) { if (l.trim() === '') continue; break; } // hết bảng (dòng không phải |… )
+    if (/^\s*\|[\s|:-]+\|?\s*$/.test(l)) continue; // dòng separator |---|
+    const cells = l.split('|').map((c) => c.trim());
+    const tcId = cells[tcI] || '';
+    if (!tcId || tcId.toLowerCase() === 'tc id') continue;
+    rows.push({ tcId, steps: cells[stepI] || '', expected: cells[expI] || '' });
+  }
+  return { rows, found: true };
+}
+
+// Trả về { problems (CHẶN), warnings (cảnh báo) }. `;`-packing là warning trừ khi strictSemicolon.
+function gateTestcaseRow(row, { strictSemicolon = false } = {}) {
+  const problems = []; const warnings = [];
+  const id = row.tcId || '(no-id)';
+  if (rules.hasRangeGrouping(row.steps)) problems.push(`${id}: "Các bước" gộp range (vd 1-2.) — mỗi bước 1 số`);
+  if (rules.hasRangeGrouping(row.expected)) problems.push(`${id}: "Kết quả mong đợi" gộp range (vd 1-2.) — mỗi bước 1 kết quả`);
+  const sN = rules.leadingNumbers(row.steps); const eN = rules.leadingNumbers(row.expected);
+  if (sN.length >= 2 && eN.length) {
+    const s = [...new Set(sN)].sort((a, b) => a - b).join(','); const e = [...new Set(eN)].sort((a, b) => a - b).join(',');
+    if (s !== e) problems.push(`${id}: "Kết quả mong đợi" đánh số [${e}] KHÔNG khớp "Các bước" [${s}]`);
+  }
+  const vague = rules.vagueExpectedLines(row.expected);
+  if (vague.length) problems.push(`${id}: "Kết quả mong đợi" chung chung: "${vague.join('", "')}" — mô tả cụ thể (text/URL/element)`);
+  const semi = String(row.expected).split(/<br\s*\/?>|\r?\n/).filter((l) => l.includes(';')).length;
+  if (semi) (strictSemicolon ? problems : warnings).push(`${id}: "Kết quả mong đợi" nhồi ý bằng ";" (${semi} dòng) — nên tách mỗi ý 1 dòng "- "`);
+  return { problems, warnings };
+}
+
+function mainGenTestcase() {
+  const FILE = arg('file', ''); const DIR = arg('dir', ''); const STRICT_SEMI = has('strict');
+  let files = [];
+  if (FILE) files = [FILE];
+  else if (DIR) { try { files = fs.readdirSync(DIR).filter((f) => f.endsWith('.md')).map((f) => path.join(DIR, f)); } catch (e) { console.error(`[gate] đọc --dir lỗi: ${e.message}`); process.exit(2); } }
+  else { console.error('[gate] --mode gen-testcase cần --file <testcase.md> hoặc --dir <test-cases/>'); process.exit(2); }
+  const problems = []; const warnings = []; let rowCount = 0; let fileCount = 0;
+  for (const f of files) {
+    if (!fs.existsSync(f)) { console.error(`[gate] không thấy: ${f}`); continue; }
+    const { rows, found } = parseTestcaseTable(fs.readFileSync(f, 'utf8'));
+    if (!found) { console.log(`[gate] ${path.basename(f)}: không thấy bảng testcase 9 cột — bỏ qua.`); continue; }
+    fileCount++; rowCount += rows.length;
+    for (const r of rows) {
+      const res = gateTestcaseRow(r, { strictSemicolon: STRICT_SEMI });
+      res.problems.forEach((p) => problems.push(`${path.basename(f)} · ${p}`));
+      res.warnings.forEach((p) => warnings.push(`${path.basename(f)} · ${p}`));
+    }
+  }
+  console.log(`[gate] gen-testcase · ${fileCount} file · ${rowCount} testcase · ${problems.length} CHẶN · ${warnings.length} cảnh báo${STRICT_SEMI ? ' (--strict)' : ''}.`);
+  if (warnings.length) { console.log('\n[gate] ⚠ Cảnh báo (nên sửa, không chặn — thêm --strict để chặn):'); warnings.slice(0, 40).forEach((p) => console.log(`  ~ ${p}`)); if (warnings.length > 40) console.log(`  … +${warnings.length - 40} nữa`); }
+  if (!problems.length) { console.log('\n[gate] ✓ ĐẠT (không lỗi CHẶN) — KQ mong đợi khớp bước, không gộp range, không chung chung.'); process.exit(0); }
+  console.log('\n[gate] ✗ VI PHẠM CHẶN (RULE_GLOBAL + prompt 02 §6):');
+  problems.forEach((p) => console.log(`  - ${p}`));
+  console.log('\n  Nhắc: mỗi bước 1 số + 1 kết quả tương ứng (ngăn <br>); cấm gộp "1-2."; không ghi trơ "thành công/đúng".');
+  if (QA_APPROVED) { console.log('\n[gate] [--qa-approved] bỏ qua → exit 0.'); process.exit(0); }
+  console.log('\n[gate] BLOCK.'); process.exit(1);
+}
+
 function main() {
   if (MODE === 'bug') return mainBug();
-  if (MODE !== 'test-execution') { console.error(`[gate] mode "${MODE}" không hỗ trợ (test-execution | bug).`); process.exit(2); }
+  if (MODE === 'gen-testcase') return mainGenTestcase();
+  if (MODE !== 'test-execution') { console.error(`[gate] mode "${MODE}" không hỗ trợ (test-execution | bug | gen-testcase).`); process.exit(2); }
   if (!STATUS) { console.error('[gate] Thiếu --status <testcase-status.json>.'); process.exit(2); }
   if (!fs.existsSync(STATUS)) { console.error(`[gate] Không thấy file: ${STATUS}`); process.exit(2); }
 
@@ -144,6 +212,6 @@ function main() {
   process.exit(1);
 }
 
-module.exports = { gateTestExecution, gateBug, isExecuted };
+module.exports = { gateTestExecution, gateBug, gateTestcaseRow, parseTestcaseTable, isExecuted };
 
 if (require.main === module) main();
