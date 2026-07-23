@@ -21,10 +21,20 @@
 | `XRAY_CLIENT_ID`, `XRAY_CLIENT_SECRET` | Xray (nếu dùng) |
 | `CONFLUENCE_URL`, `CONFLUENCE_USERNAME`, `CONFLUENCE_API_TOKEN` | integration check Confluence |
 | `OPS_BASE_URL`, `OPS_USERNAME`, `OPS_PASSWORD` | login khi execute FE/regression |
+| `METRICS_PUSH_TOKEN` *(chỉ GitLab, tuỳ chọn)* | BẬT persistence metrics — commit-back `knowledge/metrics/` xuyên run (xem mục dưới) |
 
 CI nạp qua **env từ secrets**, KHÔNG tạo file `.env` (đúng rule kit: không commit secret/token/cookie).
 
 > **Khai nhanh (GitLab):** `bash scripts/ci/set-gitlab-variables.sh` (dry-run) → `--apply` để set thật. Script đọc `.env.local` (+ `--ops-from <profile>` cho OPS) và đẩy qua `glab` — chạy **trên máy bạn** sau `glab auth login`; token/password set masked+protected, KHÔNG in giá trị. Cần `glab` cài sẵn.
+
+## Persistence metrics (F10/F11 — Option A: commit-back vào `knowledge/`)
+
+KPI (`runs.jsonl`) + độ tin cậy per-TC (`tc-history.jsonl`) + reliability index chỉ có nghĩa khi **tích luỹ xuyên run**. Mỗi CI checkout là ephemeral → dữ liệu 1-run sẽ mất nếu chỉ để artifact. Kit chọn **Option A**: job `merge-report` (GitLab, **single job** — không đua shard) commit-back các file tổng hợp vào `knowledge/metrics/` (đã un-ignore, versioned cùng triết lý `knowledge/`), dashboard đọc thẳng.
+
+- **Kích hoạt**: tạo **Project Access Token** (GitLab → Settings → Access Tokens; scope `write_repository`, role Developer+) → khai làm CI Variable **`METRICS_PUSH_TOKEN`** (Settings → CI/CD → Variables, **Masked + Protected**).
+- **Điều kiện chạy**: chỉ `CI_PIPELINE_SOURCE == "schedule"` (nightly) **và** có token → commit `chore(metrics): … [skip ci]` (không kích pipeline mới). Chưa có token → job vẫn xanh, **artifact-only** (không đỏ).
+- **An toàn**: best-effort (`git pull --rebase` trước push; `|| echo` nếu conflict/thiếu quyền → không làm đỏ pipeline). Chỉ đẩy 5 file tổng hợp; rác tạm trong dir vẫn gitignored.
+- **GitHub Actions** cố ý **KHÔNG** commit-back (tránh 2 CI cùng push chọi nhau) — GitLab self-hosted là nguồn chân lý; GitHub chỉ upload artifact.
 
 ## An toàn (bắt buộc)
 

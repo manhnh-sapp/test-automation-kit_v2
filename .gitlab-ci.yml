@@ -83,10 +83,36 @@ merge-report:
   needs:
     - job: regression
       artifacts: true
+  # METRICS_PUSH_TOKEN (masked CI var, Project Access Token scope write_repository) BẬT commit-back
+  # persistence. Chưa có token → job vẫn chạy, chỉ ra artifact (không đỏ).
+  variables:
+    GIT_DEPTH: "0"   # cần full history để rebase/push commit-back
   script:
     - npm ci --prefer-offline --no-audit --no-fund
     - npx playwright merge-reports --reporter=html blob-report/ || echo "no blob to merge"
+    # F11/F10 — thu KPI + reliability từ blob (merge JSON) → tích luỹ knowledge/metrics.
+    - PLAYWRIGHT_JSON_OUTPUT_NAME=merged-results.json npx playwright merge-reports --reporter=json blob-report/ || echo "(no blob for json)"
+    - node scripts/qa/metrics_collect.js --results merged-results.json --label "ci-$CI_PIPELINE_ID" || echo "(metrics skip)"
+    - node scripts/qa/reliability_index.js || echo "(reliability skip)"
+    # Persistence Option A — commit-back metrics vào knowledge/ (versioned). CHỈ scheduled + có token.
+    # Best-effort ([skip ci] tránh loop; || echo để không đỏ pipeline nếu conflict/thiếu quyền).
+    - |
+      if [ "$CI_PIPELINE_SOURCE" = "schedule" ] && [ -n "$METRICS_PUSH_TOKEN" ]; then
+        git config user.email "ci-metrics@sapp.edu.vn"
+        git config user.name "CI Metrics Bot"
+        git add knowledge/metrics/runs.jsonl knowledge/metrics/tc-history.jsonl knowledge/metrics/reliability-index.json knowledge/metrics/reliability-index.md knowledge/metrics/quarantine.json 2>/dev/null || true
+        if git diff --cached --quiet; then
+          echo "(persistence) metrics khong doi — bo qua commit"
+        else
+          git commit -m "chore(metrics): tich luy KPI/reliability tu run $CI_PIPELINE_ID [skip ci]"
+          REMOTE="https://oauth2:${METRICS_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+          git pull --rebase "$REMOTE" "$CI_DEFAULT_BRANCH" || echo "(persistence) rebase skip"
+          git push "$REMOTE" "HEAD:${CI_DEFAULT_BRANCH}" && echo "(persistence) metrics pushed" || echo "(persistence) push skip — kiem tra token/quyen write_repository"
+        fi
+      else
+        echo "(persistence) bo qua commit-back — can scheduled + METRICS_PUSH_TOKEN; hien artifact-only"
+      fi
   artifacts:
     when: always
-    paths: [playwright-report/]
+    paths: [playwright-report/, knowledge/metrics/]
     expire_in: 2 weeks

@@ -78,9 +78,16 @@ reports/
 Reports/
 ExportData/
 
-# Metrics/reliability telemetry (F10/F11) — JSONL/report biến động mỗi run, KHÔNG commit; .gitkeep giữ khung
+# Metrics/reliability telemetry (F10/F11) — Persistence Option A: file TỔNG HỢP được COMMIT
+# (versioned learning store, cùng triết lý knowledge/). Chỉ CI merge-report (scheduled, single job)
+# commit-back nên không nhiễu local. File tạm/khác trong dir vẫn ignore.
 knowledge/metrics/*
 !knowledge/metrics/.gitkeep
+!knowledge/metrics/runs.jsonl
+!knowledge/metrics/tc-history.jsonl
+!knowledge/metrics/reliability-index.json
+!knowledge/metrics/reliability-index.md
+!knowledge/metrics/quarantine.json
 
 # Agent / AI local files
 .gemini/
