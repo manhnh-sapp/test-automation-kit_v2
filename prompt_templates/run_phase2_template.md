@@ -191,7 +191,7 @@ Trước khi execute, phải rà soát prompt/template/executor hiện tại và
     - **Title**: mỗi lần push tạo **1 Test Execution mới** — `[TASK_KEY] Test Execution - Lần <N> - <scope> - <version>`.
     - **Status map**: PASS→PASSED · FAIL→FAILED · SKIP/BLOCKED→"TO DO".
     - **Step-level** (mặc định `XRAY_EXEC_STEP_STATUS=pass`): test PASSED → MỌI step = PASSED (hết "TO DO"); case **FAILED** khai `steps[]` hoặc `failedStep` + evidence để hiện đúng bước lỗi; `off`/`mirror`/`--step-status` để đổi.
-    - **Test Plan**: tự dò & link theo sprint + tự điền Sprint/Fix versions/Start date/SAPP-Due date (chi tiết `run_phase_re-run_template.md` 7b). Override `--test-plan`/`--no-test-plan`.
+    - **Test Plan**: tự dò & link theo sprint + tự điền Sprint/Start date/SAPP-Due date (chi tiết `run_phase_re-run_template.md` 7b). Override `--test-plan`/`--no-test-plan`. **KHÔNG** auto-gắn **Fix versions** vào cột Details của Test Execution (bật lại nếu cần: `--fill-fixversions` hoặc `XRAY_EXECUTION_FILL_FIXVERSIONS=1`). *(Version vẫn hiển thị trong TÊN execution, không phải field Details.)*
     - **Assignee**: theo `JIRA_XRAY_ASSIGNEE` (task.env — QA điền tên/email); trống = không gán.
     - **Đóng execution**: `XRAY_EXECUTION_DONE_STATUS` (vd `Done`) → sau `--write` (đã QA duyệt) kit tự transition; trống = giữ Open; **KHÔNG** Done lúc tạo/khi chưa conclusive. (Test Plan Done cuối sprint — tách biệt.)
     - **Evidence & creds**: `--with-evidence` để đính ảnh; cần `XRAY_CLIENT_ID`/`XRAY_CLIENT_SECRET`.
