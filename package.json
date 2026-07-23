@@ -31,7 +31,7 @@
     "gate:policy": "node scripts/qa/policy_source_check.js",
     "inventory:gate": "node scripts/qa/test_inventory_gate.js",
     "secret:scan": "node scripts/qa/secret_scan.js",
-    "audit:ci": "npm audit --omit=dev --audit-level=critical",
+    "audit:ci": "npm audit --omit=dev --audit-level=high",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "trace:matrix": "node scripts/qa/traceability_matrix.js",
@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "axe-core": "^4.12.1",
-    "axios": "1.17.0",
+    "axios": "^1.18.1",
     "exceljs": "^3.4.0",
     "form-data": "^4.0.6",
     "googleapis": "^150.0.1",

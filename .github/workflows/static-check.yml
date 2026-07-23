@@ -42,9 +42,9 @@ jobs:
       - name: Secret scan (F7 — chặn nếu có secret commit trên file đã track)
         run: npm run secret:scan
 
-      - name: npm audit (F7 — report đầy đủ advisory + CHẶN ở critical; high/moderate hiện có = nợ cũ, xem log)
+      - name: npm audit (F7 — report advisory + CHẶN ở high/critical; đã vá 2 high, còn moderate uuid/exceljs)
         run: |
-          npm audit --omit=dev || echo "(audit: có cảnh báo — advisory, xem ở trên; chưa chặn ở mức high/moderate)"
+          npm audit --omit=dev || echo "(audit: còn cảnh báo moderate — advisory; high/critical thì CHẶN ở bước dưới)"
           npm run audit:ci
 
       - name: Lint + typecheck (F7 — ADVISORY baseline, CHƯA chặn; siết dần khi dọn)
