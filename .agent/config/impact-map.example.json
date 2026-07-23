@@ -1,0 +1,20 @@
+{
+  "_note": "Impact-based test selection (GĐ-U3/F9+). Map domain → glob NGUỒN (source/spec) → test cần chạy khi vùng đó đổi. Copy thành .agent/config/impact-map.json để dùng. select_tests.js gộp kết quả này với path-based (spec đổi). Glob: ** = mọi cấp, * = trong 1 segment.",
+  "domains": [
+    {
+      "domain": "order",
+      "sources": ["tests/fe/order/**", "tests/api/product-orders-list.spec.ts", "scripts/integrations/jira/push_test_execution.js"],
+      "tests": ["tests/fe/order", "tests/api/product-orders-list.spec.ts"]
+    },
+    {
+      "domain": "transaction",
+      "sources": ["tests/fe/transaction/**"],
+      "tests": ["tests/fe/transaction"]
+    },
+    {
+      "domain": "auth-shared",
+      "sources": ["tests/fe/support/**"],
+      "tests": ["tests/fe", "tests/api"]
+    }
+  ]
+}

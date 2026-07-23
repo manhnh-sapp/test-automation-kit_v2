@@ -26,9 +26,28 @@ const SKIP = /(\.example($|\.)|example\.env|\.md$|\.png$|\.jpg$|\.jpeg$|\.webp$|
 const PLACEHOLDER = /your[-_]?|<[^>]+>|xxx+|placeholder|example|changeme|process\.env|\$\{?[A-Z_]/i;
 const BINARY = /\x00/;
 
+const SKIP_DIR = /^(node_modules|\.git|outputs|playwright-report|test-results|reports|\.claude|dist|build|coverage)$/;
+
+// Danh sách file để quét: ưu tiên git ls-files (chỉ file đã track); KHÔNG có .git (vd chạy từ ZIP)
+// → fallback quét working-tree, bỏ thư mục nặng/generated.
 function trackedFiles() {
-  try { return execSync('git ls-files', { cwd: rc.REPO_ROOT, encoding: 'utf8' }).split(/\r?\n/).filter(Boolean); }
-  catch (e) { console.error('[secret-scan] khong chay duoc git ls-files:', e.message); process.exit(2); }
+  try {
+    const out = execSync('git ls-files', { cwd: rc.REPO_ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    const files = out.split(/\r?\n/).filter(Boolean);
+    if (files.length) return files;
+  } catch (e) { /* không có .git → fallback bên dưới */ }
+  console.warn('[secret-scan] không dùng được git ls-files (không .git?) → fallback quét working-tree.');
+  const acc = [];
+  (function walk(dir, rel) {
+    let entries;
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return; }
+    for (const e of entries) {
+      const childRel = rel ? `${rel}/${e.name}` : e.name;
+      if (e.isDirectory()) { if (!SKIP_DIR.test(e.name)) walk(path.join(dir, e.name), childRel); }
+      else acc.push(childRel);
+    }
+  })(rc.REPO_ROOT, '');
+  return acc;
 }
 
 const findings = [];

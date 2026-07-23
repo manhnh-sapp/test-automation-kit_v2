@@ -37,13 +37,20 @@ try { doc = JSON.parse(fs.readFileSync(rp, 'utf8')); } catch (e) { console.error
 const at = new Date().toISOString();
 const label = arg('label') || process.env.RUN_ID || path.basename(path.dirname(rp));
 const st = doc.stats || {};
-const passed = Number(st.expected || 0);
+// Semantics rõ (P2): passed_clean = pass ngay (expected) · passed_flaky = pass sau retry (flaky) ·
+// eventual_success = clean + flaky. Tách 2 tỉ lệ: cleanPassRate (governance thật) vs eventualPassRate.
+const passedClean = Number(st.expected || 0);
+const passedFlaky = Number(st.flaky || 0);
 const failed = Number(st.unexpected || 0);
-const flaky = Number(st.flaky || 0);
 const skipped = Number(st.skipped || 0);
-const testsFound = passed + failed + flaky + skipped;
+const ran = passedClean + passedFlaky + failed;
+const eventualSuccess = passedClean + passedFlaky;
+const testsFound = ran + skipped;
 const durationSec = Math.round((Number(st.duration || 0) / 1000) * 10) / 10;
-const passRate = (passed + failed + flaky) > 0 ? Math.round((passed / (passed + failed + flaky)) * 1000) / 1000 : null;
+const cleanPassRate = ran > 0 ? Math.round((passedClean / ran) * 1000) / 1000 : null;
+const eventualPassRate = ran > 0 ? Math.round((eventualSuccess / ran) * 1000) / 1000 : null;
+// giữ tên cũ (passed/flaky/passRate) để dashboard/tương thích ngược.
+const passed = passedClean; const flaky = passedFlaky; const passRate = cleanPassRate;
 
 // Per-TC: walk suites đệ quy.
 const tcRecs = [];
@@ -67,9 +74,9 @@ walk(doc.suites, '');
 
 const OUT = path.resolve(arg('out', path.join(rc.REPO_ROOT, 'knowledge', 'metrics')));
 fs.mkdirSync(OUT, { recursive: true });
-const runRec = { at, label, testsFound, passed, failed, flaky, skipped, durationSec, passRate };
+const runRec = { at, label, testsFound, passedClean, passedFlaky, eventualSuccess, failed, skipped, durationSec, cleanPassRate, eventualPassRate, passed, flaky, passRate };
 fs.appendFileSync(path.join(OUT, 'runs.jsonl'), JSON.stringify(runRec) + '\n', 'utf8');
 if (tcRecs.length) fs.appendFileSync(path.join(OUT, 'tc-history.jsonl'), tcRecs.map((r) => JSON.stringify(r)).join('\n') + '\n', 'utf8');
 
-console.log(`[metrics] run "${label}": ${testsFound} test · pass ${passed} · fail ${failed} · flaky ${flaky} · skip ${skipped} · ${durationSec}s · passRate ${passRate ?? 'n/a'}`);
+console.log(`[metrics] run "${label}": ${testsFound} test · clean ${passedClean} · flaky ${passedFlaky} · fail ${failed} · skip ${skipped} · ${durationSec}s · cleanPassRate ${cleanPassRate ?? 'n/a'} · eventual ${eventualPassRate ?? 'n/a'}`);
 console.log(`[metrics] → knowledge/metrics/runs.jsonl (+${tcRecs.length} per-TC vào tc-history.jsonl)`);

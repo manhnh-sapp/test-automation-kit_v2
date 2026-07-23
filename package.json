@@ -31,7 +31,7 @@
     "gate:policy": "node scripts/qa/policy_source_check.js",
     "inventory:gate": "node scripts/qa/test_inventory_gate.js",
     "secret:scan": "node scripts/qa/secret_scan.js",
-    "audit:ci": "npm audit --omit=dev --audit-level=high",
+    "audit:ci": "node scripts/qa/audit_ci.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "trace:matrix": "node scripts/qa/traceability_matrix.js",

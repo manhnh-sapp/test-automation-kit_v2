@@ -53,12 +53,14 @@ for (const r of recs) {
 }
 
 const tests = [...byKey.values()].map((g) => {
+  // Clean Reliability (TRI) = pass sạch/tổng · Eventual Success = (clean+flaky)/tổng · Flaky Rate = flaky/tổng.
   const tri = g.total ? Math.round((g.cleanPass / g.total) * 1000) / 1000 : 0;
+  const eventualSuccess = g.total ? Math.round(((g.cleanPass + g.flaky) / g.total) * 1000) / 1000 : 0;
   const flakyRate = g.total ? Math.round((g.flaky / g.total) * 1000) / 1000 : 0;
   const enough = g.total >= MIN_RUNS;
   const rank = enough ? rankOf(tri) : 'NEW';
   const quarantine = enough && (rank === 'D' || flakyRate > FLAKY_TH);
-  return { key: g.key, file: g.file, title: g.title, runs: g.total, tri, flakyRate, rank, quarantine, lastAt: g.lastAt };
+  return { key: g.key, file: g.file, title: g.title, runs: g.total, tri, eventualSuccess, flakyRate, rank, quarantine, lastAt: g.lastAt };
 }).sort((a, b) => (a.quarantine === b.quarantine ? a.tri - b.tri : (a.quarantine ? -1 : 1)));
 
 const generatedAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -69,9 +71,10 @@ fs.writeFileSync(path.join(OUT, 'quarantine.json'), JSON.stringify({ generatedAt
 
 const L = ['# Test Reliability Index (TRI) — F10', '',
   `> ${generatedAt} · ${tests.length} test · quarantine ${quarantined.length} · minRuns=${MIN_RUNS} flakyTh=${FLAKY_TH}`,
-  '> TRI = pass sạch / tổng run · Rank S≥0.99 A≥0.97 B≥0.90 C≥0.75 D<0.75 (NEW = chưa đủ run).', '',
-  '| Test | Runs | TRI | Flaky | Rank | Quarantine |', '|---|---|---|---|---|---|'];
-for (const t of tests) L.push(`| ${t.title || t.key} | ${t.runs} | ${t.tri} | ${t.flakyRate} | ${t.rank} | ${t.quarantine ? '⚠️ YES' : ''} |`);
+  '> TRI (Clean Reliability) = pass sạch/tổng · Eventual = (clean+flaky)/tổng · Flaky = flaky/tổng.',
+  '> Rank theo TRI: S≥0.99 A≥0.97 B≥0.90 C≥0.75 D<0.75 (NEW = chưa đủ run).', '',
+  '| Test | Runs | TRI(clean) | Eventual | Flaky | Rank | Quarantine |', '|---|---|---|---|---|---|---|'];
+for (const t of tests) L.push(`| ${t.title || t.key} | ${t.runs} | ${t.tri} | ${t.eventualSuccess} | ${t.flakyRate} | ${t.rank} | ${t.quarantine ? '⚠️ YES' : ''} |`);
 if (quarantined.length) { L.push('', '## Quarantine (tách khỏi gate chính — gắn owner)'); for (const t of quarantined) L.push(`- ${t.title || t.key} — TRI ${t.tri}, flaky ${t.flakyRate}, rank ${t.rank}`); }
 fs.writeFileSync(path.join(OUT, 'reliability-index.md'), L.join('\n'), 'utf8');
 
