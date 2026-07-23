@@ -34,6 +34,7 @@
     "audit:ci": "npm audit --omit=dev --audit-level=critical",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "trace:matrix": "node scripts/qa/traceability_matrix.js",
     "integration:check": "node scripts/integrations/jira/check_connection.js",
     "integration:check:live": "node scripts/integrations/jira/check_connection.js --live",
     "jira:testcase-publish": "node scripts/integrations/jira/publish_testcases.js",
