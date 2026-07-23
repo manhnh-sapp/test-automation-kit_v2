@@ -9,7 +9,7 @@
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "allowJs": false,
-    "types": []
+    "types": ["node"]
   },
   "include": ["tests/**/*.ts"],
   "exclude": ["node_modules", "outputs"]

@@ -47,10 +47,10 @@ jobs:
           npm audit --omit=dev || echo "(audit: còn cảnh báo moderate — advisory; high/critical thì CHẶN ở bước dưới)"
           npm run audit:ci
 
-      - name: Lint + typecheck (F7 — ADVISORY baseline, CHƯA chặn; siết dần khi dọn)
+      - name: Lint + typecheck (F7 — ENFORCED; baseline 0 error, CHẶN khi có lỗi mới)
         run: |
-          npm run lint || echo "(lint: có lỗi — advisory, chưa chặn CI)"
-          npm run typecheck || echo "(typecheck: có lỗi — advisory, chưa chặn CI)"
+          npm run lint
+          npm run typecheck
 
       - name: Safe dry-runs (không secret / không UAT)
         run: |

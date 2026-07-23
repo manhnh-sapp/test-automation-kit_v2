@@ -49,19 +49,23 @@ jobs:
           npm run risk
           npm run risk:gate:enforce
 
-      # F1 — chống false-green: đếm test trước. Automation per-task nằm outputs/ (gitignored) → thường rỗng ở CI
-      # (ALLOW_EMPTY=1), nhưng GHI RÕ NO_TESTS thay vì PASSED giả.
-      - name: Test inventory gate (F1)
+      # F1/P1-1 — inventory gate CÙNG SCOPE với execute (suite fe/api + shard) → phát hiện NO_TESTS/SHARD_EMPTY
+      # đúng phạm vi. Automation per-task ở outputs/ (gitignored) → thường rỗng ở CI (ALLOW_EMPTY=1) nhưng GHI RÕ.
+      - name: Test inventory gate (F1 — scope suite + shard)
         env:
           ALLOW_EMPTY: '1'
-        run: node scripts/qa/test_inventory_gate.js --out inventory-${{ matrix.shard }}.json
+        run: |
+          SUITE_PATH=""
+          if [ "${{ inputs.suite }}" = "fe" ]; then SUITE_PATH="tests/fe"; fi
+          if [ "${{ inputs.suite }}" = "api" ]; then SUITE_PATH="tests/api"; fi
+          node scripts/qa/test_inventory_gate.js --out inventory-${{ matrix.shard }}.json -- $SUITE_PATH --shard=${{ matrix.shard }}/4
 
       - name: Execute (sharded)
         run: |
           STATE=$(node -e "try{process.stdout.write(JSON.parse(require('fs').readFileSync('inventory-${{ matrix.shard }}.json','utf8')).state)}catch(e){process.stdout.write('INFRA_FAILURE')}")
-          echo "inventory state = $STATE"
+          echo "shard ${{ matrix.shard }}/4 (suite ${{ inputs.suite }}) inventory = $STATE"
           if [ "$STATE" = "INFRA_FAILURE" ]; then echo "INFRA_FAILURE — playwright/config lỗi"; exit 1; fi
-          if [ "$STATE" = "NO_TESTS" ]; then echo "NO_TESTS_EXECUTED — chưa có automation committed cho task này (per-task ở outputs/). KHÔNG phải PASSED."; exit 0; fi
+          if [ "$STATE" = "NO_TESTS" ]; then echo "SHARD_EMPTY / NO_TESTS_EXECUTED — shard rỗng cho suite này (per-task automation ở outputs/). KHÔNG phải PASSED."; exit 0; fi
           SUITE_ARGS=""
           if [ "${{ inputs.suite }}" = "fe" ]; then SUITE_ARGS="--suite fe"; fi
           if [ "${{ inputs.suite }}" = "api" ]; then SUITE_ARGS="--suite api"; fi
@@ -70,7 +74,7 @@ jobs:
             --task "${{ inputs.task_key }}" \
             --run-id "$RUN_ID" \
             $SUITE_ARGS \
-            -- --shard=${{ matrix.shard }}/4 --reporter=blob --pass-with-no-tests
+            -- --shard=${{ matrix.shard }}/4 --reporter=blob
 
       - name: Upload blob report
         if: always()

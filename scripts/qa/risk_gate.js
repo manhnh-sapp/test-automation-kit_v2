@@ -77,10 +77,12 @@ function main() {
   const t = tod();
   const regPath = arg('register', t ? path.join(t, 'reports', 'risk-register.json') : null);
   if (!regPath || !fs.existsSync(regPath)) {
-    console.error(`[risk-gate] Không thấy risk-register.json (${regPath}). Chạy \`npm run risk\` trước.`);
+    console.error(`[risk-gate] PARSE_FAILURE: không thấy risk-register.json (${regPath}). Chạy \`npm run risk\` trước.`);
     process.exit(2);
   }
-  const register = JSON.parse(fs.readFileSync(regPath, 'utf8'));
+  let register;
+  try { register = JSON.parse(fs.readFileSync(regPath, 'utf8')); }
+  catch (e) { console.error(`[risk-gate] PARSE_FAILURE: risk-register.json hỏng (${e.message}). Sinh lại bằng \`npm run risk\`.`); process.exit(2); }
   const tcDir = arg('testcases', t ? path.join(t, 'test-cases') : null);
   const groups = parseTestcases(tcDir, model.dimensionKeywords);
 
@@ -122,7 +124,7 @@ function main() {
   // Không có testcase để đối chiếu (vd task data không có trong checkout CI) → KHÔNG phán được depth,
   // nên KHÔNG chặn kể cả --enforce (không-phán-được ≠ FAIL). Tránh false-block ở CI.
   if (ENFORCE && critical.length && groups.size === 0) {
-    console.log('[risk-gate] ENFORCE nhưng KHÔNG thấy testcase để đối chiếu (test-cases/ rỗng — data task không có trong checkout?) → BỎ QUA enforce (không chặn).');
+    console.log('[risk-gate] NO_TESTCASE_SOURCE: không có testcase để đối chiếu (test-cases/ rỗng — data task không trong checkout) → BỎ QUA enforce (không-phán-được-depth ≠ FAIL). Khác PARSE_FAILURE (register hỏng → chặn).');
     return;
   }
   if (ENFORCE && critical.length) { console.error(`[risk-gate] ENFORCE: chặn (${critical.length} CRITICAL ở band High). Bổ sung TC hoặc đặt gate_waiver + lý do trong risk-register.json.`); process.exit(1); }
