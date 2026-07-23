@@ -39,6 +39,14 @@ jobs:
       - name: Policy 1-nguồn (F3 — RULE_GLOBAL canonical, core_rules là digest có pointer)
         run: npm run gate:policy
 
+      - name: Secret scan (F7 — chặn nếu có secret commit trên file đã track)
+        run: npm run secret:scan
+
+      - name: npm audit (F7 — report đầy đủ advisory + CHẶN ở critical; high/moderate hiện có = nợ cũ, xem log)
+        run: |
+          npm audit --omit=dev || echo "(audit: có cảnh báo — advisory, xem ở trên; chưa chặn ở mức high/moderate)"
+          npm run audit:ci
+
       - name: Safe dry-runs (không secret / không UAT)
         run: |
           set -e
