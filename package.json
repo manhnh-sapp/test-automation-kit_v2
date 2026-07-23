@@ -22,6 +22,8 @@
     "risk:gate:enforce": "node scripts/qa/risk_gate.js --enforce",
     "seed:knowledge": "node scripts/qa/seed_knowledge_from_jira.js",
     "seed:knowledge:apply": "node scripts/qa/seed_knowledge_from_jira.js --apply",
+    "gate:output": "node scripts/qa/output_gate.js --mode test-execution",
+    "gate:output:fix": "node scripts/qa/output_gate.js --mode test-execution --fix",
     "integration:check": "node scripts/integrations/jira/check_connection.js",
     "integration:check:live": "node scripts/integrations/jira/check_connection.js --live",
     "jira:testcase-publish": "node scripts/integrations/jira/publish_testcases.js",

@@ -31,6 +31,10 @@ Tạo report Phase 2 rõ ràng, không log bug sai do setup/prompt/test data, kh
    - Đã rerun đủ để loại flaky/setup/data/prompt issue.
    - Expected result đã xác nhận đúng.
    - Actual result có evidence rõ.
+4b. **Gate chất lượng output — THỰC THI, tự chạy (không phải kiểm bằng mắt).**
+   - Test Execution: `push_test_execution.js` **tự chạy `scripts/qa/output_gate.js`** trước khi push → CHẶN khi comment run-on/dính debug `key=value`, step thiếu status/evidence, evidence không phải ảnh/video, hoặc case phức tạp thiếu video. Xem/tự sửa trước: `npm run gate:output -- --status <testcase-status.json>` (thêm `--fix` để tự dọn comment).
+   - **Gate CHẶN → TỰ SỬA trong session rồi chạy lại tới khi PASS**; KHÔNG push kèm vi phạm, KHÔNG chờ user nhắc. Chỉ `--qa-approved` khi QA có lý do rõ (được log).
+   - **Bắt buộc tạo bug/Test Execution QUA script kit** (`bug_reporter.js`/`push_test_execution.js`) — KHÔNG tạo tay bằng Atlassian MCP/API (tạo tay = bỏ qua gate → sai 4 phần/evidence/comment).
 5. Chạy Jira dry-run trước.
 6. Chỉ log Jira thật khi user yêu cầu hoặc prompt hiện tại cho phép.
 7. Jira description chỉ gồm:

@@ -209,6 +209,7 @@ Các năng lực chạy thật trong `scripts/qa/` + `exploratory/` phải khai 
 - **Non-destructive & non-prod**: `security_check` chỉ GET/read-only + `--confirm-nonprod`; `load_check` non-prod + cap + `--confirm-nonprod`; fuzzing/exploit/brute-force/ZAP là Manual-only opt-in có phê duyệt người. TUYỆT ĐỐI không chạy trên production.
 - **Mask PII/secret** trong mọi report (security/knowledge/dashboard); không ghi credential/PII khách hàng.
 - **Learning data chỉ ghi fact đã qua gate** (bug đã qua Jira gate); band/risk máy chấm luôn cho phép QA override.
+- **Output Quality Gate (THỰC THI, không phải prose)**: `scripts/qa/output_gate.js` + `scripts/qa/lib/output_rules.js` biến rule chất lượng thành check máy — `push_test_execution.js` tự chạy trước khi push (comment gọn/không debug, mọi step có status + evidence ảnh/video, video cho case phức tạp). Vi phạm → CHẶN; agent tự sửa trong session, không chờ nhắc. `--qa-approved` bỏ qua có chủ đích (log lại). Bug/Test Execution **bắt buộc qua script kit**, không tạo tay MCP/API.
 - **Không thêm dependency nặng**: axe-core (npm) đủ cho a11y; k6 là binary ngoài (Docker/PATH, không vào deps), thiếu → skip sạch.
 
 ## Workflow

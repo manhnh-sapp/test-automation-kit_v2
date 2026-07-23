@@ -57,6 +57,7 @@ const {
 } = require('./utils');
 const { getRunId, getTestResultsDir } = require('../../utils/runtime_config');
 const { XrayCloudClient, isUsableCreds } = require('./xray_cloud');
+const outputGate = require('../../qa/output_gate'); // gate chất lượng comment/evidence/step (RULE_GLOBAL)
 
 loadEnv();
 
@@ -99,9 +100,13 @@ const JIRA_SPRINT_FIELD_ID = argString('sprint-field') || process.env.JIRA_SPRIN
 // Test Plan issue type name (để search theo sprint).
 const TEST_PLAN_ISSUE_TYPE = argString('test-plan-issue-type') || process.env.JIRA_TEST_PLAN_ISSUE_TYPE || 'Test Plan';
 
-const WITH_EVIDENCE = argFlag('with-evidence') || process.env.XRAY_EXECUTION_WITH_EVIDENCE === '1';
-// Bắt buộc mọi case đã execute (PASS/FAIL) phải có evidence ở TỪNG step; thiếu -> lỗi (thay vì chỉ cảnh báo).
-const REQUIRE_STEP_EVIDENCE = argFlag('require-step-evidence') || process.env.XRAY_REQUIRE_STEP_EVIDENCE === '1';
+// STRICT (mặc định BẬT): gate chất lượng output chặn push khi comment/evidence/step sai.
+// Tắt có chủ đích: --lenient hoặc XRAY_STRICT=0. QA cố ý bỏ qua 1 lần: --qa-approved (vẫn log vi phạm).
+const QA_APPROVED = argFlag('qa-approved');
+const STRICT = !(argFlag('lenient') || process.env.XRAY_STRICT === '0');
+const WITH_EVIDENCE = (STRICT && !argFlag('no-with-evidence')) || argFlag('with-evidence') || process.env.XRAY_EXECUTION_WITH_EVIDENCE === '1';
+// Bắt buộc mọi case đã execute (PASS/FAIL) phải có evidence ở TỪNG step; thiếu -> lỗi (mặc định BẬT theo STRICT).
+const REQUIRE_STEP_EVIDENCE = (STRICT && !argFlag('no-require-step-evidence')) || argFlag('require-step-evidence') || process.env.XRAY_REQUIRE_STEP_EVIDENCE === '1';
 const EVIDENCE_MAX_BYTES = Number.parseInt(argString('evidence-max-bytes') || process.env.XRAY_EVIDENCE_MAX_BYTES || '', 10) || 5 * 1024 * 1024;
 
 // Step-level status trong Test Run (mặc định 'pass'):
@@ -118,6 +123,9 @@ const XRAY_ASSIGNEE = argString('assignee') || process.env.JIRA_XRAY_ASSIGNEE ||
 // Không chạy lúc tạo/khi chưa conclusive (guard conclusive đã chặn ở trên) — chỉ chạy cuối, sau khi có kết quả.
 const DONE_STATUS = argString('done-status') || process.env.XRAY_EXECUTION_DONE_STATUS || '';
 const NO_DONE = argFlag('no-done');
+// Fix versions ở cột Details của Test Execution: MẶC ĐỊNH KHÔNG auto-gắn (copy từ Story).
+// Bật lại bằng --fill-fixversions hoặc XRAY_EXECUTION_FILL_FIXVERSIONS=1. (Không ảnh hưởng version trong TÊN execution.)
+const FILL_FIXVERSIONS = argFlag('fill-fixversions') || process.env.XRAY_EXECUTION_FILL_FIXVERSIONS === '1';
 
 const DO_WRITE = argFlag('write') || argFlag('no-dry-run') || argFlag('publish');
 const DRY_RUN = !DO_WRITE;
@@ -172,6 +180,20 @@ async function main() {
   validate();
 
   const statusDoc = readStatusFile(STATUS_FILE);
+
+  // GATE chất lượng output (RULE_GLOBAL): comment gọn/không debug, mọi step có status, evidence ảnh/video,
+  // case phức tạp có video. Tự chạy TRƯỚC khi build/push → không push được payload sai (trừ khi QA cố ý bỏ qua).
+  {
+    const gate = outputGate.gateTestExecution(statusDoc);
+    if (gate.problems.length) {
+      const msg = `GATE CHẤT LƯỢNG output — ${gate.problems.length} vi phạm (RULE_GLOBAL):\n  - ${gate.problems.join('\n  - ')}\n→ Sửa ${relativeToRepo(STATUS_FILE)} cho đúng rồi chạy lại; hoặc \`node scripts/qa/output_gate.js --status ${relativeToRepo(STATUS_FILE)} --fix\` để tự sửa comment. Bỏ qua có chủ đích: --qa-approved.`;
+      if (STRICT && !QA_APPROVED) throw new Error(msg);
+      log('WARN', `${msg}${QA_APPROVED ? '\n  [--qa-approved] QA cố ý bỏ qua gate.' : ''}`);
+    } else {
+      log('LOG', 'Gate chất lượng output: OK.');
+    }
+  }
+
   const rawTests = Array.isArray(statusDoc) ? statusDoc : (statusDoc.tests || statusDoc.testcases || []);
   if (!rawTests.length) throw new Error(`Status file không có test nào: ${relativeToRepo(STATUS_FILE)}`);
 
@@ -712,13 +734,14 @@ async function safePutFields(key, fields) {
 async function fillExecutionFieldsFromStory(execKey) {
   try {
     const ids = await resolveFieldIds();
-    const want = [ids.sprint, 'fixVersions', ids.startDate, ids.dueDate].filter(Boolean);
+    const want = [ids.sprint, ids.startDate, ids.dueDate, FILL_FIXVERSIONS ? 'fixVersions' : ''].filter(Boolean);
     const d = await jiraGet(`/rest/api/3/issue/${encodeURIComponent(STORY_KEY)}`, { fields: want.join(',') });
     const sf = d.fields || {};
     const fields = {};
     const spr = sf[ids.sprint];
     if (Array.isArray(spr) && spr.length) { const a = spr.find((s) => s.state === 'active') || spr[spr.length - 1]; if (a && a.id != null) fields[ids.sprint] = Number(a.id); }
-    if (Array.isArray(sf.fixVersions) && sf.fixVersions.length) fields.fixVersions = sf.fixVersions.map((v) => ({ id: String(v.id) }));
+    // Fix versions: chỉ gắn vào Details khi bật FILL_FIXVERSIONS (mặc định bỏ qua).
+    if (FILL_FIXVERSIONS && Array.isArray(sf.fixVersions) && sf.fixVersions.length) fields.fixVersions = sf.fixVersions.map((v) => ({ id: String(v.id) }));
     if (ids.startDate && sf[ids.startDate]) fields[ids.startDate] = sf[ids.startDate];
     if (ids.dueDate && sf[ids.dueDate]) fields[ids.dueDate] = sf[ids.dueDate];
     if (!Object.keys(fields).length) return;
