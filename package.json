@@ -32,6 +32,8 @@
     "inventory:gate": "node scripts/qa/test_inventory_gate.js",
     "secret:scan": "node scripts/qa/secret_scan.js",
     "audit:ci": "npm audit --omit=dev --audit-level=critical",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "integration:check": "node scripts/integrations/jira/check_connection.js",
     "integration:check:live": "node scripts/integrations/jira/check_connection.js --live",
     "jira:testcase-publish": "node scripts/integrations/jira/publish_testcases.js",
@@ -50,7 +52,10 @@
     "pg": "^8.22.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.60.0",
-    "@types/pg": "^8.20.0"
+    "@types/pg": "^8.20.0",
+    "eslint": "^10.7.0",
+    "typescript": "^7.0.2"
   }
 }

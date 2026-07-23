@@ -21,6 +21,8 @@ static-check:
     - npm run secret:scan
     - 'npm audit --omit=dev || echo "(audit advisory — xem canh bao o tren; chua chan o high/moderate)"'
     - npm run audit:ci
+    - 'npm run lint || echo "(lint advisory - chua chan CI)"'
+    - 'npm run typecheck || echo "(typecheck advisory - chua chan CI)"'
     - npm run dashboard
     - npm run risk
     - 'if node scripts/qa/security_check.js --catalog .agent/config/dashboard.branding.example.json; then echo "security guard PHAI tu choi khi thieu --confirm-nonprod"; exit 1; else echo "security guard OK"; fi'

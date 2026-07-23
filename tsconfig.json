@@ -1,0 +1,16 @@
+{
+  "//": "Chỉ dùng cho `tsc --noEmit` typecheck spec .ts (advisory ở CI). Kit không transpile TS.",
+  "compilerOptions": {
+    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "target": "ES2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "allowJs": false,
+    "types": []
+  },
+  "include": ["tests/**/*.ts"],
+  "exclude": ["node_modules", "outputs"]
+}
