@@ -45,11 +45,12 @@ function looksRunOn(text) {
   const ideas = splitIdeas(t);
   if (t.length > 160 && ideas.length >= 2) return true;
   if (ideas.length >= 3) return true;
-  // Chuỗi mệnh đề nối bằng "và"/phẩy trên 1 dòng (không dấu câu) — kiểu "1 mạch text".
+  // Chuỗi mệnh đề nối bằng "và"/phẩy trên 1 dòng — kiểu "1 mạch text nhồi nhiều ý".
   // (dùng split theo khoảng trắng vì \b không nhận diện được từ có dấu tiếng Việt)
   const andCount = t.split(/\s+(?:và|nhưng|đồng thời|ngoài ra|cũng như)\s+/i).length - 1;
-  const conj = andCount + (t.match(/[,;]/g) || []).length;
-  if (conj >= 3 && t.length > 80) return true;
+  const commas = (t.match(/[,;]/g) || []).length;
+  if (andCount >= 3) return true;                            // ≥3 liên từ nối clause = nhồi nhiều ý
+  if (andCount + commas >= 4 && t.length > 80) return true;  // hỗn hợp nhiều dấu ngắt + dài
   return false;
 }
 

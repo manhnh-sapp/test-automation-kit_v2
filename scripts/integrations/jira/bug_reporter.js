@@ -27,6 +27,7 @@ const {
   getTestResultsDir,
   loadEnvFiles,
 } = require('../../utils/runtime_config');
+const outputGate = require('../../qa/output_gate'); // gate chất lượng bug (RULE_GLOBAL: ≥1 ảnh/video, video case phức tạp, không run-on)
 
 const SCRIPT_DIR = __dirname;
 const REPO_ROOT = path.resolve(SCRIPT_DIR, '..', '..', '..');
@@ -80,6 +81,10 @@ const JIRA_SPRINT_FIELD_ID = argString('sprint-field') || process.env.JIRA_SPRIN
 const BUG_LAYER_OVERRIDE = normalizeBugLayer(argString('layer') || process.env.JIRA_BUG_LAYER || '');
 const TC_ID_FILTER = normalizeTcId(argString('tc-id') || argString('tc') || process.env.JIRA_BUG_TC_ID || '');
 const UPDATE_ISSUE_KEY = normalizeIssueKey(argString('update-issue') || argString('issue') || '');
+// Gate chất lượng bug: STRICT mặc định BẬT → chặn tạo bug thiếu ảnh/video (hoặc thiếu video case phức tạp).
+// Tắt: --lenient / QA_STRICT=0. QA cố ý bỏ qua: --qa-approved (vẫn log).
+const QA_APPROVED = argFlag('qa-approved');
+const STRICT = !(argFlag('lenient') || process.env.QA_STRICT === '0');
 const REQUIRED_PARENT_FIELD_IDS = ['customfield_10039', 'customfield_10037'];
 const STANDARD_PARENT_COPY_FIELD_IDS = ['fixVersions'];
 const JIRA_PRIORITY_NAMES = ['Highest', 'High', 'Medium', 'Low', 'Lowest'];
@@ -1281,6 +1286,7 @@ async function main() {
 
   const rows = [];
 
+  const bugGateProblems = []; // gom vi phạm gate bug (RULE_GLOBAL)
   for (const testCase of failedTests) {
     const tcInfo = findTestCaseInfo(testCase.tcId, TESTCASES_DIR);
     const selectedTcInfo = findSelectedTestCaseInfo(testCase.tcId);
@@ -1291,6 +1297,18 @@ async function main() {
     const actualResult = buildActualResult(testCase, artifactInfo, displayTitle);
     const summary = buildBugSummary(layer, displayTitle, actualResult, testCase.tcId);
     const prioritySuffix = priority ? ` (Priority: ${priority})` : '';
+
+    // GATE chất lượng bug (RULE_GLOBAL): ≥1 ảnh/video, video cho case phức tạp, KQ không run-on.
+    const attachmentsPreview = [artifactInfo.screenshotPath, artifactInfo.videoPath].filter(isJiraEvidenceAttachment);
+    const gateProblems = outputGate.gateBug({
+      id: testCase.tcId,
+      summary,
+      actualResult,
+      expectedResult: tcInfo.expectedResult || '',
+      attachments: attachmentsPreview,
+    });
+    if (gateProblems.length) bugGateProblems.push(...gateProblems);
+    const blockedByGate = gateProblems.length > 0 && STRICT && !QA_APPROVED;
 
     console.log(`Processing ${testCase.tcId}: ${displayTitle}${prioritySuffix}`);
 
@@ -1303,6 +1321,12 @@ async function main() {
           : `Would create child ${layer} bug${prioritySuffix}`,
         url: UPDATE_ISSUE_KEY ? `${JIRA_BASE_URL}/browse/${UPDATE_ISSUE_KEY}` : '-',
       });
+      continue;
+    }
+
+    if (blockedByGate) {
+      console.warn(`  ⚠ GATE chặn ${testCase.tcId}: ${gateProblems.join('; ')}`);
+      rows.push({ tcId: testCase.tcId, issueKey: 'BLOCKED', status: `BLOCKED by gate: ${gateProblems.join('; ')}`, url: '-' });
       continue;
     }
 
@@ -1382,6 +1406,12 @@ async function main() {
       console.error(`  create failed: ${message}`);
       rows.push({ tcId: testCase.tcId, issueKey: 'ERROR', status: `Error: ${message}`, url: '-' });
     }
+  }
+
+  if (bugGateProblems.length) {
+    console.log(`\n[gate bug] ${bugGateProblems.length} vi phạm chất lượng (RULE_GLOBAL):`);
+    bugGateProblems.forEach((p) => console.log(`  - ${p}`));
+    console.log(`  → Bug cần ≥1 ảnh/video; case phức tạp cần video; KQ hiện tại/mong muốn mỗi ý 1 dòng. Bổ sung rồi chạy lại.${STRICT ? ' Bỏ qua có chủ đích: --qa-approved.' : ' (STRICT tắt → chỉ cảnh báo, vẫn tạo bug.)'}`);
   }
 
   const summaryText = buildSummary(rows);

@@ -84,10 +84,43 @@ function gateTestExecution(doc, { fix = false } = {}) {
   return { problems, fixes, executed, doc: Array.isArray(doc) ? { tests } : doc };
 }
 
+/**
+ * Gate 1 bug SẮP tạo (dùng bởi bug_reporter.js trước createIssue/upload).
+ * @param {object} bug { id, summary, actualResult, expectedResult, attachments:[path], headings?:[] }
+ * @returns {string[]} vi phạm (rỗng = đạt)
+ */
+function gateBug(bug = {}) {
+  const id = bug.id || bug.tcId || '(no-id)';
+  const problems = [];
+  const att = (Array.isArray(bug.attachments) ? bug.attachments : (bug.attachments ? [bug.attachments] : [])).map(String).filter(Boolean);
+  const complex = rules.looksComplex([bug.summary, bug.title, id].filter(Boolean).join(' '));
+  rules.lintEvidence({ evidences: att, isComplex: complex }).forEach((p) => problems.push(`${id}: ${p}`));
+  if (rules.looksRunOn(bug.actualResult)) problems.push(`${id}: "Kết quả hiện tại" run-on (dồn nhiều ý 1 dòng) → mỗi ý 1 dòng/bullet`);
+  if (rules.looksRunOn(bug.expectedResult)) problems.push(`${id}: "Kết quả mong muốn" run-on → mỗi ý 1 dòng/bullet`);
+  if (Array.isArray(bug.headings)) rules.lintBugHeadings(bug.headings).forEach((p) => problems.push(`${id}: ${p}`));
+  return problems;
+}
+
+function mainBug() {
+  const PREVIEW = arg('preview', '');
+  if (!PREVIEW || !fs.existsSync(PREVIEW)) { console.error('[gate] --mode bug cần --preview <bugs.json> (mảng {id,summary,actualResult,expectedResult,attachments})'); process.exit(2); }
+  let arr;
+  try { const d = JSON.parse(fs.readFileSync(PREVIEW, 'utf8')); arr = Array.isArray(d) ? d : (d.bugs || []); } catch (e) { console.error(`[gate] JSON lỗi: ${e.message}`); process.exit(2); }
+  const problems = arr.flatMap((b) => gateBug(b));
+  console.log(`[gate] bug · ${arr.length} bug · ${problems.length} vi phạm.`);
+  if (!problems.length) { console.log('[gate] ✓ ĐẠT — đủ ảnh/video, không run-on.'); process.exit(0); }
+  console.log('\n[gate] ✗ VI PHẠM (RULE_GLOBAL):');
+  problems.forEach((p) => console.log(`  - ${p}`));
+  console.log('\n  Nhắc: bug cần ≥1 ảnh/video; case phức tạp cần video; Kết quả hiện tại/mong muốn mỗi ý 1 dòng.');
+  if (QA_APPROVED) { console.log('\n[gate] [--qa-approved] bỏ qua → exit 0.'); process.exit(0); }
+  console.log('\n[gate] BLOCK.'); process.exit(1);
+}
+
 function main() {
+  if (MODE === 'bug') return mainBug();
+  if (MODE !== 'test-execution') { console.error(`[gate] mode "${MODE}" không hỗ trợ (test-execution | bug).`); process.exit(2); }
   if (!STATUS) { console.error('[gate] Thiếu --status <testcase-status.json>.'); process.exit(2); }
   if (!fs.existsSync(STATUS)) { console.error(`[gate] Không thấy file: ${STATUS}`); process.exit(2); }
-  if (MODE !== 'test-execution') { console.error(`[gate] mode "${MODE}" chưa hỗ trợ (hiện: test-execution).`); process.exit(2); }
 
   let doc;
   try { doc = JSON.parse(fs.readFileSync(STATUS, 'utf8')); } catch (e) { console.error(`[gate] JSON lỗi: ${e.message}`); process.exit(2); }
@@ -111,6 +144,6 @@ function main() {
   process.exit(1);
 }
 
-module.exports = { gateTestExecution, isExecuted };
+module.exports = { gateTestExecution, gateBug, isExecuted };
 
 if (require.main === module) main();
