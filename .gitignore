@@ -151,5 +151,9 @@ CLAUDE.md
 # Báo cáo AI Agent (deck pptx/pdf) — bản trình bày, KHÔNG commit vào kit
 /AI-Agent-Activity-Report.*
 
+# Tài liệu kế hoạch/đánh giá/hướng dẫn nội bộ (plan/review/guide) — KHÔNG commit (lộ roadmap/điểm review lên public)
+*_KeHoach_va_HuongDan*.docx
+*_KeHoach*.docx
+
 # GitLab Runner system id
 .runner_system_id
