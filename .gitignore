@@ -78,6 +78,10 @@ reports/
 Reports/
 ExportData/
 
+# Metrics/reliability telemetry (F10/F11) — JSONL/report biến động mỗi run, KHÔNG commit; .gitkeep giữ khung
+knowledge/metrics/*
+!knowledge/metrics/.gitkeep
+
 # Agent / AI local files
 .gemini/
 brain/

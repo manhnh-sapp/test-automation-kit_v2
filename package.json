@@ -36,6 +36,8 @@
     "typecheck": "tsc --noEmit",
     "trace:matrix": "node scripts/qa/traceability_matrix.js",
     "select:tests": "node scripts/qa/select_tests.js",
+    "metrics:collect": "node scripts/qa/metrics_collect.js",
+    "reliability": "node scripts/qa/reliability_index.js",
     "integration:check": "node scripts/integrations/jira/check_connection.js",
     "integration:check:live": "node scripts/integrations/jira/check_connection.js --live",
     "jira:testcase-publish": "node scripts/integrations/jira/publish_testcases.js",

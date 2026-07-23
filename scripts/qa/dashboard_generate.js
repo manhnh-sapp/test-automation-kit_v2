@@ -200,7 +200,7 @@ function dataTable(headers, rows, emptyMsg) {
   return `<div class="tablewrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
-function render({ coverage, moduleRisk, flaky, nonFunctional, generatedAt, logo, branding }) {
+function render({ coverage, moduleRisk, flaky, nonFunctional, metrics, generatedAt, logo, branding }) {
   const b = branding;
   const c = branding.colors;
   const totalBugs = moduleRisk.reduce((n, r) => n + r.bugs, 0);
@@ -420,11 +420,40 @@ code{font-family:Consolas,monospace;font-size:12px;color:var(--t2);word-break:br
     ${nfHtml}
   </section>
 
+  <section>
+    <div class="sec-eyebrow">Reliability &amp; KPI (F10/F11 — đầy dần theo run)</div>
+    ${(() => {
+      if (!metrics || !metrics.runCount) return '<p class="empty">Chưa có dữ liệu run — chạy test rồi <code>npm run metrics:collect</code> + <code>npm run reliability</code> để tích luỹ (knowledge/metrics/).</p>';
+      const r = metrics.latestRun || {};
+      const rel = metrics.reliability || {};
+      return `<p>Run gần nhất (${esc(r.label || '')}, ${esc(r.at || '')}): <b>${r.passed || 0}</b> pass · <b>${r.failed || 0}</b> fail · <b>${r.flaky || 0}</b> flaky · pass-rate <b>${r.passRate == null ? 'n/a' : r.passRate}</b> · ${r.durationSec || 0}s. Tổng <b>${metrics.runCount}</b> run ghi nhận.</p>`
+        + (rel.total ? `<p>Reliability: <b>${rel.total}</b> test · <b>${rel.quarantine || 0}</b> quarantine${rel.rankDist ? ` · rank ${esc(rel.rankDist)}` : ''}.</p>` : '<p class="empty">Reliability index chưa có — cần ≥vài run để tính TRI (npm run reliability).</p>');
+    })()}
+  </section>
+
   <div class="foot">${esc(b.brandName)} — ${esc(b.motto)}</div>
 </div>
 </body>
 </html>
 `;
+}
+
+function readMetrics() {
+  const dir = path.join(KNOWLEDGE_DIR, 'metrics');
+  let latestRun = null; let runCount = 0; let reliability = null;
+  try {
+    const lines = fs.readFileSync(path.join(dir, 'runs.jsonl'), 'utf8').split(/\r?\n/).filter(Boolean);
+    runCount = lines.length;
+    if (lines.length) latestRun = JSON.parse(lines[lines.length - 1]);
+  } catch (e) { /* chưa có metrics */ }
+  try {
+    const rel = JSON.parse(fs.readFileSync(path.join(dir, 'reliability-index.json'), 'utf8'));
+    const tests = rel.tests || [];
+    const dist = {};
+    tests.forEach((t) => { dist[t.rank] = (dist[t.rank] || 0) + 1; });
+    reliability = { total: tests.length, quarantine: tests.filter((t) => t.quarantine).length, rankDist: Object.entries(dist).map(([k, v]) => `${k}:${v}`).join(' ') };
+  } catch (e) { /* chưa có reliability index */ }
+  return { latestRun, runCount, reliability };
 }
 
 function main() {
@@ -434,6 +463,7 @@ function main() {
   const moduleRisk = buildModuleRisk(bugs, coverage);
   const flaky = findFlakyReports();
   const nonFunctional = findNonFunctional();
+  const metrics = readMetrics();
   const branding = loadBranding();
 
   const html = render({
@@ -441,6 +471,7 @@ function main() {
     moduleRisk,
     flaky,
     nonFunctional,
+    metrics,
     branding,
     logo: loadLogo(branding.logoPath),
     generatedAt: new Date().toISOString().replace('T', ' ').slice(0, 19),

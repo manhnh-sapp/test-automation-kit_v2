@@ -90,3 +90,18 @@ jobs:
           path: playwright-report/
           retention-days: 14
           if-no-files-found: ignore
+
+      # F11 — thu KPI mỗi run (merged JSON → knowledge/metrics) + F10 reliability. Best-effort, không chặn.
+      # LƯU Ý: mỗi run checkout mới → artifact chỉ có KPI run này; trend xuyên run cần commit/central store (P2).
+      - name: KPI metrics (F11) + reliability (F10)
+        run: |
+          PLAYWRIGHT_JSON_OUTPUT_NAME=merged-results.json npx playwright merge-reports --reporter=json all-blobs || echo "(no blob for json)"
+          node scripts/qa/metrics_collect.js --results merged-results.json --label "ci-${{ github.run_id }}" || echo "(metrics skip)"
+          node scripts/qa/reliability_index.js || echo "(reliability skip)"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: metrics
+          path: knowledge/metrics/
+          retention-days: 30
+          if-no-files-found: ignore
