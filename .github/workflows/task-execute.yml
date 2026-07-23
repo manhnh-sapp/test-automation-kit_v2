@@ -37,20 +37,31 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium webkit
 
-      # Risk gate chạy trước — cold-start/chưa có register thì KHÔNG chặn (continue-on-error).
-      - name: Risk gate (best-effort, không chặn)
-        continue-on-error: true
+      # F2 — risk gate ENFORCE thật (bỏ '|| true' + continue-on-error che kết quả trước đây).
+      # risk_gate tự BỎ QUA enforce khi KHÔNG có testcase để đối chiếu (test-cases/ không trong checkout) → không false-block.
+      - name: Risk gate (F2 — enforce, không mask)
         run: |
-          npm run risk || true
-          npm run risk:gate || true
+          npm run risk
+          npm run risk:gate:enforce
+
+      # F1 — chống false-green: đếm test trước. Automation per-task nằm outputs/ (gitignored) → thường rỗng ở CI
+      # (ALLOW_EMPTY=1), nhưng GHI RÕ NO_TESTS thay vì PASSED giả.
+      - name: Test inventory gate (F1)
+        env:
+          ALLOW_EMPTY: '1'
+        run: node scripts/qa/test_inventory_gate.js --out inventory-${{ matrix.shard }}.json
 
       - name: Execute (sharded)
         run: |
+          STATE=$(node -e "try{process.stdout.write(JSON.parse(require('fs').readFileSync('inventory-${{ matrix.shard }}.json','utf8')).state)}catch(e){process.stdout.write('INFRA_FAILURE')}")
+          echo "inventory state = $STATE"
+          if [ "$STATE" = "INFRA_FAILURE" ]; then echo "INFRA_FAILURE — playwright/config lỗi"; exit 1; fi
+          if [ "$STATE" = "NO_TESTS" ]; then echo "NO_TESTS_EXECUTED — chưa có automation committed cho task này (per-task ở outputs/). KHÔNG phải PASSED."; exit 0; fi
           SUITE_ARGS=""
           if [ "${{ inputs.suite }}" = "fe" ]; then SUITE_ARGS="--suite fe"; fi
           if [ "${{ inputs.suite }}" = "api" ]; then SUITE_ARGS="--suite api"; fi
@@ -88,7 +99,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
       - run: npm ci
       - uses: actions/download-artifact@v4

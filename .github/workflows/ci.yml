@@ -29,12 +29,36 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium webkit
+
+      # F1 — chống false-green: đếm test trước. Suite regression CHUNG chưa promote spec (tests/fe|api)
+      # → rỗng là hợp lệ (ALLOW_EMPTY=1), NHƯNG gate GHI RÕ NO_TESTS thay vì báo PASSED giả.
+      # Khi đã promote spec thật (F6): bỏ ALLOW_EMPTY để 0-test thành ĐỎ.
+      - name: Test inventory gate (F1)
+        env:
+          ALLOW_EMPTY: '1'
+        run: node scripts/qa/test_inventory_gate.js --out inventory-${{ matrix.shard }}.json
+
       - name: Sharded regression (blob report)
-        run: npx playwright test --shard=${{ matrix.shard }}/4 --reporter=blob --pass-with-no-tests
+        run: |
+          STATE=$(node -e "try{process.stdout.write(JSON.parse(require('fs').readFileSync('inventory-${{ matrix.shard }}.json','utf8')).state)}catch(e){process.stdout.write('INFRA_FAILURE')}")
+          echo "inventory state = $STATE"
+          if [ "$STATE" = "HAS_TESTS" ]; then
+            npx playwright test --shard=${{ matrix.shard }}/4 --reporter=blob --pass-with-no-tests
+          elif [ "$STATE" = "NO_TESTS" ]; then
+            echo "NO_TESTS_EXECUTED — suite regression chung chưa có spec promoted (tests/fe|api). KHÔNG phải PASSED."
+          else
+            echo "INFRA_FAILURE — playwright/config lỗi, không đếm được test"; exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: inventory-${{ matrix.shard }}
+          path: inventory-${{ matrix.shard }}.json
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -50,7 +74,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
       - run: npm ci
       - uses: actions/download-artifact@v4

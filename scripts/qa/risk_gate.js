@@ -119,6 +119,12 @@ function main() {
   const warn = findings.filter((f) => f.verdict === 'WARN');
   console.log(`[risk-gate] ${findings.length} module · ${critical.length} CRITICAL · ${warn.length} WARN → ${path.join(OUT, 'risk-gate.md')}`);
   for (const c of critical) console.log(`  CRITICAL: ${c.module} — ${c.reasons.join('; ')}`);
+  // Không có testcase để đối chiếu (vd task data không có trong checkout CI) → KHÔNG phán được depth,
+  // nên KHÔNG chặn kể cả --enforce (không-phán-được ≠ FAIL). Tránh false-block ở CI.
+  if (ENFORCE && critical.length && groups.size === 0) {
+    console.log('[risk-gate] ENFORCE nhưng KHÔNG thấy testcase để đối chiếu (test-cases/ rỗng — data task không có trong checkout?) → BỎ QUA enforce (không chặn).');
+    return;
+  }
   if (ENFORCE && critical.length) { console.error(`[risk-gate] ENFORCE: chặn (${critical.length} CRITICAL ở band High). Bổ sung TC hoặc đặt gate_waiver + lý do trong risk-register.json.`); process.exit(1); }
   if (!ENFORCE && critical.length) console.log('[risk-gate] (suggest-only — không chặn; chạy --enforce để chặn CI)');
 }

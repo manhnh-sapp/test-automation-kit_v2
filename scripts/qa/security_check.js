@@ -21,7 +21,32 @@
 const fs = require('fs');
 const path = require('path');
 require(path.resolve(__dirname, '..', 'utils', 'runtime_config'));
-const { request } = require('@playwright/test');
+
+// F4 — KHÔNG phụ thuộc @playwright/test (devDependency) ở runtime → chạy được cả khi cài `--omit=dev`.
+// Dùng axios (đã là dependency) qua shim giữ NGUYÊN interface `request` của Playwright mà script cần.
+let axios;
+try { axios = require('axios'); }
+catch (e) { console.error('[security] Thiếu dependency "axios" (khai trong package.json). Chạy `npm ci` rồi thử lại.'); process.exit(2); }
+
+const request = {
+  async newContext({ extraHTTPHeaders = {} } = {}) {
+    const inst = axios.create({ headers: extraHTTPHeaders, validateStatus: () => true, timeout: 20000, maxRedirects: 5 });
+    const wrap = (r) => ({
+      status: () => r.status,
+      headers: () => r.headers || {},
+      headersArray: () => Object.entries(r.headers || {}).flatMap(([name, value]) =>
+        (Array.isArray(value) ? value.map((v) => ({ name, value: String(v) })) : [{ name, value: String(value) }])),
+      json: async () => (r.data && typeof r.data === 'object' ? r.data : JSON.parse(r.data)),
+      text: async () => (typeof r.data === 'string' ? r.data : JSON.stringify(r.data)),
+    });
+    return {
+      // Playwright request mặc định FOLLOW redirect; chỉ chặn khi caller truyền maxRedirects:0 (headers/transport check).
+      async get(url, opts = {}) { return wrap(await inst.get(url, { maxRedirects: opts.maxRedirects != null ? opts.maxRedirects : 5 })); },
+      async post(url, opts = {}) { return wrap(await inst.post(url, (opts && opts.data) || {})); },
+      async dispose() {},
+    };
+  },
+};
 
 function arg(name, def) {
   const i = process.argv.indexOf(`--${name}`);

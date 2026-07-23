@@ -15,7 +15,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
 
       - name: Install deps
@@ -35,6 +35,9 @@ jobs:
           ['knowledge/index.json','.agent/config/risk_model.example.json','.agent/config/dashboard.branding.example.json']
             .forEach(f=>{JSON.parse(fs.readFileSync(f,'utf8'));console.log('JSON OK',f);});
           "
+
+      - name: Policy 1-nguồn (F3 — RULE_GLOBAL canonical, core_rules là digest có pointer)
+        run: npm run gate:policy
 
       - name: Safe dry-runs (không secret / không UAT)
         run: |
