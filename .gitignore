@@ -140,6 +140,10 @@ scripts/integrations/jira/unassign_tests_backup.json
 **/*_backup.json
 **/*.BACKUP.md
 
+# Auth session cache (P1 Auth Strategy) — cookies + localStorage token (actToken/refreshToken) = SECRET.
+# TUYỆT ĐỐI KHÔNG commit. Mỗi máy tự đăng nhập sinh lại.
+.auth/
+
 # Claude Code local files
 .claude/
 # CLAUDE.md: COMMIT (G3 round-3) — non-negotiables shared, context-resident cho mọi phiên/mọi người.
