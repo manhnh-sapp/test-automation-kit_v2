@@ -21,48 +21,13 @@ const path = require('path');
 const outputGate = require(path.resolve(__dirname, 'output_gate'));
 const testcaseModel = require(path.resolve(__dirname, '..', 'lib', 'testcase')); // #1: parser canonical DUY NHẤT
 
-// Cột canonical của bảng testcase 9 cột (khớp prompt gen Phase 1). 'Dữ liệu Test' optional.
-const REQUIRED_COLS = ['TC ID', 'Module', 'Trường hợp kiểm thử', 'Tiền điều kiện', 'Các bước thực hiện', 'Kết quả mong đợi', 'Ưu tiên', 'Mức độ rủi ro'];
-// Ô lõi mỗi TC bắt buộc không rỗng (Kết quả mong đợi để output_gate lo oracle-rỗng; Dữ liệu Test/Tiền điều kiện có thể rỗng hợp lệ).
-const REQUIRED_CELLS = ['Module', 'Trường hợp kiểm thử', 'Các bước thực hiện', 'Ưu tiên', 'Mức độ rủi ro'];
-
-// Parse bảng testcase → { found, header:[], rows:[{colName: value}] }.
-// #1: delegate parser canonical (chống pipe-shift). rows = _cells (original-header → cleaned cell).
-function parseFullTable(md) {
-  const doc = testcaseModel.parseMarkdown(md);
-  return { found: doc.tests.length > 0, header: doc.headers, rows: doc.tests.map((t) => t._cells) };
-}
-
+// #1 (formalize): gateDesign DELEGATE canonical.validate (structural + completeness + dimension) —
+// KHÔNG còn giữ logic riêng. validate() là superset đã dựng ở #1 GĐ1a; 1 nguồn kiểm thiết kế.
 function gateDesign(md) {
-  const problems = []; const warnings = [];
-  const { found, header, rows } = parseFullTable(md);
-  if (!found) return { found: false, problems, warnings, rowCount: 0 };
-
-  // 1) STRUCTURAL — đủ cột canonical.
-  const norm = header.map((h) => h.toLowerCase());
-  for (const col of REQUIRED_COLS) {
-    if (!norm.includes(col.toLowerCase())) problems.push(`Bảng testcase THIẾU cột "${col}" (cột canonical) — downstream (convert/gate/risk) sẽ vỡ`);
-  }
-
-  // 2) COMPLETENESS — mỗi TC không rỗng ô lõi.
-  for (const r of rows) {
-    const id = r['TC ID'] || '(no-id)';
-    for (const col of REQUIRED_CELLS) {
-      if (col in r && !String(r[col] || '').trim()) problems.push(`${id}: rỗng ô "${col}" — testcase thiết kế dở`);
-    }
-  }
-
-  // 3) DIMENSION (set-level) — cảnh báo (depth per-module do risk_gate ép).
-  const allCases = rows.map((r) => r['Trường hợp kiểm thử'] || '').join(' \n ').toLowerCase();
-  if (rows.length && !/\[negative\]|negative|âm tính|không hợp lệ/.test(allCases)) {
-    warnings.push('Bộ testcase chưa thấy case [Negative] nào — mọi chức năng nên có ít nhất 1 negative (input sai/không hợp lệ/không quyền)');
-  }
-  const highRows = rows.filter((r) => /high|cao/i.test(r['Mức độ rủi ro'] || ''));
-  if (highRows.length && !/\[boundary\]|boundary|biên|\[security\]|security|bảo mật|idor|injection/.test(allCases)) {
-    warnings.push(`Có ${highRows.length} case High-risk nhưng chưa thấy dimension [Boundary]/[Security] — chạy \`npm run risk:gate:enforce\` để ép depth theo band`);
-  }
-
-  return { found: true, problems, warnings, rowCount: rows.length };
+  const doc = testcaseModel.parseMarkdown(md);
+  if (!doc.tests.length) return { found: false, problems: [], warnings: [], rowCount: 0 };
+  const { problems, warnings } = testcaseModel.validate(doc);
+  return { found: true, problems, warnings, rowCount: doc.tests.length };
 }
 
 function runFile(file, { withRows }) {
@@ -114,6 +79,6 @@ function main() {
   process.exit(1);
 }
 
-module.exports = { gateDesign, parseFullTable, REQUIRED_COLS, REQUIRED_CELLS };
+module.exports = { gateDesign };
 
 if (require.main === module) main();
