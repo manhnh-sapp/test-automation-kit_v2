@@ -203,6 +203,8 @@ flowchart TD
 | Design gate — thiết kế TC (G5) | `npm run design:gate -- --dir <test-cases/> --with-rows` |
 | Output gate — execute / gen-testcase (G2/G4/G6) | `npm run gate:output -- --status <status.json>` · `npm run gate:gen-testcase -- --dir <test-cases/>` |
 | Self-review — checklist gộp trước finalize (G9) | `npm run self-review -- --task <TASK_KEY>` |
+| Dependency graph — REQ→TC→exec + impact-map (P2) | `npm run dep:graph -- --task <TASK_KEY> [--changed a,b]` |
+| Quality decision — GO/NO-GO (P2) | `npm run quality:decision -- --task <TASK_KEY> [--coverage N] [--gate PASS/WARN/FAIL]` |
 | Mobile-web (device emulation) | `npm run test:mobile-web` |
 | Regenerate user-guide images | `npm run user-guide:images` |
 | Check Jira connection | `npm run integration:check` |

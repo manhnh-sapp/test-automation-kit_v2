@@ -179,6 +179,11 @@ Nhân mô hình `output_gate` ra TOÀN kit — biến bước quan trọng mọi
 | **`design_gate.js` (G5)** | thiếu cột canonical / rỗng ô lõi testcase = CHẶN; thiếu [Negative]/High-risk thiếu [Boundary]/[Security] = cảnh báo | `md_to_xlsx` (trước gen-gate) · `npm run design:gate` |
 | **`self_review.js` (G9)** | *advisory* — gộp preflight+design+row-quality+execution thành 1 checklist trước finalize (luôn exit 0) | `npm run self-review -- --task <KEY>` · workflow phase2_04 Bước 0 |
 | **`.agent/config/verdict_taxonomy.json` (G4)** | NGUỒN DUY NHẤT: statuses/failureLayers/rerun{2,3}. `output_gate` validate status; prompt trỏ về đây | (config) |
+| **`lib/gate_engine.js` (#2)** | interface GateResult {gateId,status,severity,findings} + `aggregate`/`format` — self_review dùng | (lib) |
+| **`dependency_graph.js` (P2)** | gộp traceability(module→TC→exec) + impact-map(source→tests) → coverageByModule + impactedTests | `npm run dep:graph -- --task <KEY>` |
+| **`quality_decision.js` (P2)** | Risk+Coverage+Reliability+Defect+Security → GO/GO_WITH_RISK/NEEDS_REVIEW/NO_GO/BLOCKED | `npm run quality:decision -- --task <KEY>` |
+
+> **Architecture hardening (`scripts/utils/`, offline):** `lib/testcase/` (canonical TestCase: parseMarkdown/parseXlsx/validate — 1 parser), `test_context.js` (thin execution-context), `evidence/{sanitize,manifest}.js` (PII mask + evidence index/exists-check), `auth/{session_cache,auth_strategy}.js` + `tests/fe/support/auth/opsAuth.ts` (reuse session né throttle), `cleanup/cleanup_manifest.js` (orphan RUN_ID reconcile), `runtime_config.d.ts` (typed).
 
 ```bash
 node scripts/qa/preflight_gate.js --mode phase2 --task <KEY>   # G1: đủ input trước execute
