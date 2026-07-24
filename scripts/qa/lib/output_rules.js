@@ -140,10 +140,37 @@ function vagueExpectedLines(cell) {
     .filter((l) => l && VAGUE_EXPECTED.test(l));
 }
 
+// ---- G2 (round-3): FAIL phân tầng lỗi · oracle tautology (app==app) ----
+
+// FAIL đã được PHÂN TẦNG khi comment/root-cause nêu rõ tầng: product/API bug, setup, infra, flaky,
+// data/quyền/precondition, hoặc gắn Jira key (đã log bug). Thiếu hết = "không phán được" → CHẶN.
+const FAILURE_LAYER = new RegExp([
+  'lỗi sản phẩm', 'product bug', 'api bug', 'api contract', '\\bbug\\b', '\\bdefect\\b',
+  'sai (nghiệp vụ|kết quả|logic|công thức|số liệu|dữ liệu)',
+  'setup[_ ]?failure', 'blocked[_ ]?setup', 'skip[_ ]?setup', 'precondition',
+  'thiếu (data|dữ liệu|quyền|capability|hook|mock|sandbox|account|fixture)',
+  'môi trường', '\\binfra\\b', 'hạ tầng', '\\bflaky\\b', 'chập chờn', '\\btimeout\\b',
+  'regression', 'dependency', '\\bauth\\b', '\\b[A-Z][A-Z0-9]+-\\d{2,}\\b',
+].join('|'), 'i');
+const hasFailureLayer = (text) => FAILURE_LAYER.test(String(text || ''));
+
+// Oracle tautology = đối chiếu chính output của app với chính nó (app==app) thay vì giá trị spec
+// độc lập. Heuristic bảo thủ (chỉ CẢNH BÁO) — bắt các cụm tự-tham-chiếu rõ ràng.
+const TAUTOLOGY_HINT = new RegExp([
+  'như (trên )?hệ thống', 'theo (đúng )?hệ thống',
+  '(hệ thống|app|giao diện) (trả về|hiển thị) (đúng|khớp)',
+  'đúng với (dữ liệu (hiện có|trên hệ thống)|response|api)',
+  'đúng như (response|api trả về|hệ thống)',
+  'khớp với (response|hệ thống|api)',
+  'match(es)? (the )?(system|response|app|api)',
+].join('|'), 'i');
+const looksTautology = (text) => TAUTOLOGY_HINT.test(String(text || ''));
+
 module.exports = {
   isVisualEvidence, isVideoEvidence,
   hasDebugTokens, looksRunOn, splitIdeas, looksComplex,
   cleanComment, lintComment, lintEvidence, lintBugHeadings,
   hasRangeGrouping, leadingNumbers, vagueExpectedLines,
+  hasFailureLayer, looksTautology,
   BUG_SECTIONS, RAW_MONEY,
 };

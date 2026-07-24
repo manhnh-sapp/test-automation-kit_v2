@@ -192,6 +192,9 @@ async function main() {
     } else {
       log('LOG', 'Gate chất lượng output: OK.');
     }
+    if (gate.warnings && gate.warnings.length) {
+      log('WARN', `Gate cảnh báo (không chặn) — ${gate.warnings.length}:\n  ~ ${gate.warnings.join('\n  ~ ')}`);
+    }
   }
 
   const rawTests = Array.isArray(statusDoc) ? statusDoc : (statusDoc.tests || statusDoc.testcases || []);

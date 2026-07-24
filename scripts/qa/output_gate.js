@@ -41,6 +41,7 @@ const evList = (v) => (Array.isArray(v) ? v : (v ? [v] : [])).map(String).filter
 function gateTestExecution(doc, { fix = false } = {}) {
   const tests = Array.isArray(doc) ? doc : (doc.tests || doc.testcases || []);
   const problems = [];
+  const warnings = [];
   const fixes = [];
   let executed = 0;
 
@@ -79,9 +80,23 @@ function gateTestExecution(doc, { fix = false } = {}) {
     if (rules.looksComplex([t.comment, id, t.name].filter(Boolean).join(' ')) && allEv.length && !allEv.some(rules.isVideoEvidence)) {
       problems.push(`${id}: case có dấu hiệu PHỨC TẠP nhưng thiếu VIDEO (ảnh không mô tả đủ chuỗi bước) → rerun quay video`);
     }
+
+    // 5) G2 (round-3): FAIL phải PHÂN TẦNG lỗi — "không phán được" KHÔNG lọt thành FAIL trơ.
+    if (FAIL_RE.test(String(t.status || '').trim())) {
+      const failText = [t.comment, t.rootCause, t.actualResult, t.actual, t.classification, t.failureType, t.category]
+        .filter(Boolean).join(' ');
+      if (!rules.hasFailureLayer(failText)) {
+        problems.push(`${id}: FAIL nhưng KHÔNG phân tầng lỗi (product/API bug? setup_failure? infra/flaky? thiếu data/quyền?) — nêu rõ tầng + root cause trong comment`);
+      }
+    }
+
+    // 6) G2: oracle tautology (app==app) → CẢNH BÁO (không chặn oan).
+    if (rules.looksTautology(t.comment)) {
+      warnings.push(`${id}: comment có dấu hiệu oracle tautology (đối chiếu app==app, không theo giá trị spec) → khẳng định theo giá trị/spec độc lập`);
+    }
   }
 
-  return { problems, fixes, executed, doc: Array.isArray(doc) ? { tests } : doc };
+  return { problems, warnings, fixes, executed, doc: Array.isArray(doc) ? { tests } : doc };
 }
 
 /**
@@ -141,6 +156,10 @@ function parseTestcaseTable(md) {
 function gateTestcaseRow(row, { strictSemicolon = false } = {}) {
   const problems = []; const warnings = [];
   const id = row.tcId || '(no-id)';
+  // G2 (round-3): oracle non-empty — "Kết quả mong đợi" (chính là oracle) KHÔNG được rỗng.
+  if (!String(row.expected || '').trim()) problems.push(`${id}: "Kết quả mong đợi" RỖNG (oracle rỗng) — phải có kết quả kiểm được, cụ thể`);
+  // G2: oracle tautology (app==app) → cảnh báo.
+  if (rules.looksTautology(row.expected)) warnings.push(`${id}: "Kết quả mong đợi" có dấu hiệu tautology (đối chiếu app==app "như hệ thống…") → nêu giá trị/spec độc lập`);
   if (rules.hasRangeGrouping(row.steps)) problems.push(`${id}: "Các bước" gộp range (vd 1-2.) — mỗi bước 1 số`);
   if (rules.hasRangeGrouping(row.expected)) problems.push(`${id}: "Kết quả mong đợi" gộp range (vd 1-2.) — mỗi bước 1 kết quả`);
   const sN = rules.leadingNumbers(row.steps); const eN = rules.leadingNumbers(row.expected);
@@ -193,7 +212,7 @@ function main() {
   let doc;
   try { doc = JSON.parse(fs.readFileSync(STATUS, 'utf8')); } catch (e) { console.error(`[gate] JSON lỗi: ${e.message}`); process.exit(2); }
 
-  const { problems, fixes, executed, doc: outDoc } = gateTestExecution(doc, { fix: FIX });
+  const { problems, warnings, fixes, executed, doc: outDoc } = gateTestExecution(doc, { fix: FIX });
 
   if (FIX && fixes.length) {
     fs.writeFileSync(STATUS, JSON.stringify(Array.isArray(doc) ? outDoc.tests : outDoc, null, 2), 'utf8');
@@ -201,8 +220,9 @@ function main() {
     fixes.forEach((f) => console.log(`  ✎ ${f}`));
   }
 
-  console.log(`[gate] test-execution · ${executed} case đã execute · ${problems.length} vi phạm chặn.`);
-  if (!problems.length) { console.log('[gate] ✓ ĐẠT — comment gọn, evidence/step/video đủ.'); process.exit(0); }
+  console.log(`[gate] test-execution · ${executed} case đã execute · ${problems.length} vi phạm chặn · ${warnings.length} cảnh báo.`);
+  if (warnings.length) { console.log('\n[gate] ⚠ Cảnh báo (nên sửa, không chặn):'); warnings.forEach((w) => console.log(`  ~ ${w}`)); }
+  if (!problems.length) { console.log('\n[gate] ✓ ĐẠT — comment gọn, evidence/step/video đủ, FAIL đã phân tầng.'); process.exit(0); }
 
   console.log('\n[gate] ✗ VI PHẠM (RULE_GLOBAL — sửa cho đúng rồi chạy lại, đừng push):');
   problems.forEach((p) => console.log(`  - ${p}`));
