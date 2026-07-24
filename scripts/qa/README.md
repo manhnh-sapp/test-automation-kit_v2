@@ -153,11 +153,11 @@ npm run seed:knowledge:apply -- --since 2025-01-01             # ghi thật vào
 
 Biến rule chất lượng máy-kiểm-được thành check THỰC THI, tự chạy trước khi push/convert → **không push/convert được payload sai** (agent tự sửa trong session, không chờ user nhắc). Rule ở `scripts/qa/lib/output_rules.js` (hàm thuần, tái dùng).
 
-| Mode | Chặn gì | Wired tự chạy ở |
-|---|---|---|
-| `test-execution` | comment run-on/debug · step thiếu status/ảnh · evidence không phải ảnh/video · case phức tạp thiếu video | `push_test_execution.js` (trước push) |
-| `bug` | bug thiếu ảnh/video · thiếu video case phức tạp · KQ run-on | `bug_reporter.js` (loop tạo bug) |
-| `gen-testcase` | KQ mong đợi số ≠ bước · gộp range `1-2.` · chung chung ("thành công"/"đúng"); `;`-nhồi-ý = **cảnh báo** (`--strict` để chặn) | `md_to_xlsx.js` (convert) |
+| Mode | Chặn gì (CHẶN) | Cảnh báo | Wired tự chạy ở |
+|---|---|---|---|
+| `test-execution` | comment run-on/debug · step thiếu status/ảnh · evidence không phải ảnh/video · case phức tạp thiếu video · **FAIL thiếu tầng-lỗi (G2)** | tautology (G2) · verdict lạ (G4) · attestation lệch/thiếu (G6) | `push_test_execution.js` (trước push) |
+| `bug` | bug thiếu ảnh/video · thiếu video case phức tạp · KQ run-on · **thiếu Kết quả hiện tại/mong muốn (G8)** | — | `bug_reporter.js` (loop tạo bug) |
+| `gen-testcase` | KQ số ≠ bước · gộp range `1-2.` · chung chung · **oracle rỗng (G2)** | `;`-nhồi-ý · tautology (`--strict` để chặn `;`) | `md_to_xlsx.js` (convert) |
 
 ```bash
 npm run gate:output -- --status <testcase-status.json>       # test-execution (thêm --fix tự dọn comment)
@@ -167,15 +167,38 @@ node scripts/qa/output_gate.js --mode bug --preview <bugs.json>
 
 STRICT mặc định BẬT (tắt: `--lenient`/`QA_STRICT=0`/`XRAY_STRICT=0`); QA cố ý bỏ qua: `--qa-approved` (có log).
 
+---
+
+# Forcing functions round-3 (G1–G10)
+
+Nhân mô hình `output_gate` ra TOÀN kit — biến bước quan trọng mọi phase thành gate máy-chặn do entrypoint/hook/CI gọi tự động (không để agent nhớ). Nguồn: `Kế hoạch update kit lần 3.docx`. Non-negotiables luôn-trong-ngữ-cảnh: **`CLAUDE.md`** (repo root, auto-load).
+
+| Gate | Chặn/cảnh báo | Wired |
+|---|---|---|
+| **`preflight_gate.js` (G1)** | thiếu input bắt buộc / config JSON malformed / (phase2) thiếu testcase canonical = CHẶN | `md_to_xlsx` (phase1) · CI static-check (`--mode generic`) · `npm run preflight` |
+| **`design_gate.js` (G5)** | thiếu cột canonical / rỗng ô lõi testcase = CHẶN; thiếu [Negative]/High-risk thiếu [Boundary]/[Security] = cảnh báo | `md_to_xlsx` (trước gen-gate) · `npm run design:gate` |
+| **`self_review.js` (G9)** | *advisory* — gộp preflight+design+row-quality+execution thành 1 checklist trước finalize (luôn exit 0) | `npm run self-review -- --task <KEY>` · workflow phase2_04 Bước 0 |
+| **`.agent/config/verdict_taxonomy.json` (G4)** | NGUỒN DUY NHẤT: statuses/failureLayers/rerun{2,3}. `output_gate` validate status; prompt trỏ về đây | (config) |
+
+```bash
+node scripts/qa/preflight_gate.js --mode phase2 --task <KEY>   # G1: đủ input trước execute
+npm run design:gate -- --dir <test-cases/> --with-rows        # G5: structural+completeness (+row-quality)
+npm run self-review -- --task <KEY>                            # G9: checklist gộp trước finalize
+```
+
+---
+
 ## Hook harness (tuỳ chọn, tự động cao nhất)
 
-`scripts/qa/hooks/gate_on_write.js` = PostToolUse hook: mỗi khi agent GHI `testcase-status.json` hoặc `test-cases/*.md`, tự chạy gate lên file đó, vi phạm CHẶN → feedback về agent. Bật ở **local** `.claude/settings.json` (thư mục `.claude/` bị gitignore nên KHÔNG share qua git — mỗi máy tự thêm; runner script đã committed):
+2 hook (script **committed**; cấu hình bật ở **local** `.claude/settings.json` — `.claude/` gitignore nên mỗi máy tự khai; xem [`hooks/README.md`](hooks/README.md)):
+- `scripts/qa/hooks/gate_on_write.js` = **PostToolUse** (Write|Edit): mỗi khi agent GHI `testcase-status.json`/`test-cases/*.md` → tự chạy gate, vi phạm CHẶN → feedback về agent.
+- `scripts/qa/hooks/inject_context.js` = **SessionStart** (G7): bơm context forcing-functions + kết quả preflight config-integrity vào MỌI phiên (chống miss-file tận gốc).
 
 ```jsonc
-{ "hooks": { "PostToolUse": [ {
-  "matcher": "Write|Edit",
-  "hooks": [ { "type": "command", "command": "node scripts/qa/hooks/gate_on_write.js", "timeout": 60 } ]
-} ] } }
+{ "hooks": {
+  "SessionStart": [ { "hooks": [ { "type": "command", "command": "node scripts/qa/hooks/inject_context.js", "timeout": 30 } ] } ],
+  "PostToolUse":  [ { "matcher": "Write|Edit", "hooks": [ { "type": "command", "command": "node scripts/qa/hooks/gate_on_write.js", "timeout": 60 } ] } ]
+} }
 ```
 
 Thêm xong mở `/hooks` một lần (hoặc restart) để harness nạp settings mới.

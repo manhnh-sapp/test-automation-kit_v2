@@ -6,7 +6,7 @@
 
 | File | Trigger | Vai trò | Cần secret? |
 |---|---|---|---|
-| `static-check.yml` | **mỗi push/PR** | `node --check` toàn bộ script + validate JSON config/knowledge + dry-run an toàn (dashboard rỗng, risk cold-start, security-guard từ chối). Bắt vỡ tooling. | ❌ Không |
+| `static-check.yml` | **mỗi push/PR** | **preflight config/context integrity (G1)** + `node --check` toàn bộ script + validate JSON config/knowledge + dry-run an toàn (dashboard rỗng, risk cold-start, security-guard từ chối). Bắt vỡ tooling. | ❌ Không |
 | `integration-check.yml` | **manual** | Kiểm kết nối Jira/Confluence/Xray + **dry-run** publish/bug (KHÔNG publish thật). | ✅ JIRA/XRAY/CONFLUENCE |
 | `task-execute.yml` | **manual** (dispatch task_key/suite) | Phase 2 task-scoped, sharded + risk-gate + artifact theo task. Chỉ chạy spec **đã committed**. | ✅ OPS (+JIRA nếu cần) |
 | `ci.yml` | **nightly + manual** (KHÔNG every-push) | Live regression sharded → gộp 1 HTML report. `--pass-with-no-tests` khi chưa có spec. | ✅ OPS |

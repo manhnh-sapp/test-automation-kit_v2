@@ -541,6 +541,8 @@ Quality gate:
 | Jira testcase publish | Chỉ chạy sau QA confirmation; nếu chưa approve thì trạng thái phải là `Pending QA confirmation`. |
 | Setup Readiness | Mỗi precondition có `PRE-NN` đủ để setup qua UI/API/fixture/hook an toàn hoặc ghi manual rõ; case `Needs hook`/`Manual-only` ghi rõ blocker/missing capability. |
 
+> **Ép bằng máy (forcing functions round-3):** `npm run preflight` (config/input đủ) · `npm run design:gate -- --dir test-cases/ --with-rows` (đủ cột / không rỗng ô lõi / oracle) · gate gen-testcase TỰ CHẠY khi convert · `npm run self-review -- --task <TASK_KEY>` (checklist gộp trước finalize). Chi tiết `scripts/qa/README.md`.
+
 Final Decision hợp lệ:
 
 | Status | Ý nghĩa |
