@@ -149,6 +149,9 @@ function gateBug(bug = {}) {
   const att = (Array.isArray(bug.attachments) ? bug.attachments : (bug.attachments ? [bug.attachments] : [])).map(String).filter(Boolean);
   const complex = rules.looksComplex([bug.summary, bug.title, id].filter(Boolean).join(' '));
   rules.lintEvidence({ evidences: att, isComplex: complex }).forEach((p) => problems.push(`${id}: ${p}`));
+  // G8 (round-3): bug phải nêu rõ Kết quả hiện tại (điều SAI) + Kết quả mong muốn (oracle đúng theo spec).
+  if (!String(bug.actualResult || '').trim()) problems.push(`${id}: bug THIẾU "Kết quả hiện tại" (mô tả cụ thể điều đang SAI)`);
+  if (!String(bug.expectedResult || '').trim()) problems.push(`${id}: bug THIẾU "Kết quả mong muốn" (oracle: điều ĐÚNG phải xảy ra theo spec)`);
   if (rules.looksRunOn(bug.actualResult)) problems.push(`${id}: "Kết quả hiện tại" run-on (dồn nhiều ý 1 dòng) → mỗi ý 1 dòng/bullet`);
   if (rules.looksRunOn(bug.expectedResult)) problems.push(`${id}: "Kết quả mong muốn" run-on → mỗi ý 1 dòng/bullet`);
   if (Array.isArray(bug.headings)) rules.lintBugHeadings(bug.headings).forEach((p) => problems.push(`${id}: ${p}`));
