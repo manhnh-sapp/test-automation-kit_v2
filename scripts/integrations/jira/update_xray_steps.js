@@ -14,6 +14,7 @@ const fs = require('fs');
 const axios = require('axios');
 const { loadEnv, buildJiraHeaders } = require('./utils.js');
 const { XrayCloudClient, isUsableCreds } = require('./xray_cloud.js');
+const testcaseModel = require('../../lib/testcase'); // #1: parser MD canonical DUY NHẤT (chống pipe-shift)
 loadEnv();
 
 function argString(name) { const i = process.argv.indexOf(`--${name}`); return i >= 0 ? process.argv[i + 1] : ''; }
@@ -69,37 +70,11 @@ function buildXraySteps(steps, expected) {
   return built;
 }
 
-// Split 1 dòng bảng md, tôn trọng escaped pipe "\|".
-function splitRow(line) {
-  const parts = []; let cur = '';
-  for (let i = 0; i < line.length; i += 1) {
-    const ch = line[i];
-    if (ch === '\\' && i + 1 < line.length) { cur += ch + line[i + 1]; i += 1; continue; }
-    if (ch === '|') { parts.push(cur); cur = ''; } else cur += ch;
-  }
-  parts.push(cur);
-  return parts.slice(1, -1).map((c) => c.trim());
-}
-
+// #1: delegate parser canonical (chống split('|') naive pipe-shift). stepsRaw/expectedRaw = cleanCell.
 function parseTestcases(mdPath) {
-  const lines = fs.readFileSync(mdPath, 'utf8').split(/\r?\n/);
-  let header = null; const rows = [];
-  for (const l of lines) {
-    if (!l.trim().startsWith('|')) { if (header && rows.length) break; continue; }
-    const cells = splitRow(l);
-    if (!header) { if (cells.includes('TC ID') && cells.some((c) => /Kết quả mong đợi/.test(c))) header = cells; continue; }
-    if (/^[-:\s|]+$/.test(l.replace(/\|/g, ''))) continue; // separator
-    rows.push(cells);
-  }
-  if (!header) throw new Error('Không tìm thấy header bảng testcase (TC ID / Kết quả mong đợi).');
-  const idx = {
-    id: header.indexOf('TC ID'),
-    steps: header.findIndex((h) => /Các bước thực hiện/.test(h)),
-    expected: header.findIndex((h) => /Kết quả mong đợi/.test(h)),
-  };
-  return rows
-    .filter((c) => c[idx.id])
-    .map((c) => ({ tcId: c[idx.id], steps: c[idx.steps] || '', expected: c[idx.expected] || '' }));
+  const doc = testcaseModel.parseMarkdown(fs.readFileSync(mdPath, 'utf8'));
+  if (!doc.tests.length) throw new Error('Không tìm thấy bảng testcase (TC ID / Kết quả mong đợi).');
+  return doc.tests.map((t) => ({ tcId: t.tcId, steps: t.stepsRaw, expected: t.expectedRaw }));
 }
 
 async function findExistingTest(tcId) {
