@@ -16,6 +16,7 @@
    - Trace được requirement.
    - Assertion intent rõ.
    - Mỗi precondition có tag `[PRE-NN]` map tới catalog Setup Strategy; `Setup Source`/`Setup Verification`/`Cleanup` đủ cụ thể để Phase 2 setup qua UI/API/fixture/hook an toàn hoặc đánh dấu manual; `Automation Readiness` đã gán (`Ready`/`Needs hook`/`Manual-only`).
+   - **Ép bằng máy (G5 design_gate):** structural (đủ cột canonical) + completeness (ô lõi Module/Trường hợp/Các bước/Ưu tiên/Mức độ rủi ro không rỗng) = **CHẶN**. Chạy `npm run design:gate -- --dir <test-cases/>` (thêm `--with-rows` để check luôn row-quality/oracle); TỰ CHẠY khi convert (Bước 4). Dimension/depth per-module: Bước 6a risk gate.
 2. Review coverage:
    - Requirement Coverage = Covered Requirements / Total In-scope Requirements * 100%.
    - Requirement chỉ tính covered nếu có testcase trace rõ, assertion đúng behavior và không skip.
@@ -26,7 +27,7 @@
    ```powershell
    node scripts/convert_excel/md_to_xlsx.js <testcase.md> <testcase.xlsx>
    ```
-   - **Gate gen-testcase TỰ CHẠY khi convert** (RULE_GLOBAL + prompt 02 §6): CHẶN (không tạo xlsx) nếu "Kết quả mong đợi" không khớp số bước / gộp range `1-2.` / ghi trơ "thành công"/"đúng"; `;`-nhồi-ý chỉ cảnh báo. **Gate CHẶN → tự sửa Markdown rồi convert lại tới khi PASS, không chờ user nhắc.** Kiểm trước khi convert: `npm run gate:gen-testcase -- --dir <test-cases/>`.
+   - **Design gate (G5) + gate gen-testcase TỰ CHẠY khi convert**: (a) design_gate CHẶN nếu thiếu cột canonical / rỗng ô lõi; (b) gen-testcase CHẶN (không tạo xlsx) nếu "Kết quả mong đợi" không khớp số bước / gộp range `1-2.` / ghi trơ "thành công"/"đúng" / oracle rỗng; `;`-nhồi-ý + tautology chỉ cảnh báo. **Gate CHẶN → tự sửa Markdown rồi convert lại tới khi PASS, không chờ user nhắc.** Kiểm trước: `npm run design:gate -- --dir <test-cases/> --with-rows`.
 5. Ghi trạng thái `Jira testcase publish: Pending QA confirmation` trong `task.md`.
    - Không publish Jira trong bước này.
    - Step publish riêng là [phase1_04_auto_publish_jira.md](phase1_04_auto_publish_jira.md), chỉ chạy sau khi QA xác nhận Excel.

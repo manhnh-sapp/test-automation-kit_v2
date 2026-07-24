@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const outputGate = require("../qa/output_gate"); // gate gen-testcase (RULE_GLOBAL §6: KQ khớp bước, cấm gộp range/chung chung)
 const preflight = require("../qa/preflight_gate"); // G1: input/config bắt buộc đủ & parse được (miss-file/PARSE_FAILURE = CHẶN)
+const designGate = require("../qa/design_gate"); // G5: structural (đủ cột) + completeness (ô lõi không rỗng)
 
 let ExcelJS;
 try {
@@ -424,6 +425,19 @@ async function main() {
     if (pf.warnings && pf.warnings.length) console.warn(`[preflight] ⚠ ${pf.warnings.join(" | ")}`);
     if (pf.problems && pf.problems.length) {
       const msg = `[preflight] ✗ ${pf.problems.length} input bắt buộc thiếu/hỏng:\n  - ${pf.problems.join("\n  - ")}\n→ Đọc/sửa input rồi convert lại.`;
+      if (!LENIENT && !QA_APPROVED) { console.error(msg); process.exit(1); }
+      console.warn(`${msg}\n  [bỏ qua] vẫn convert.`);
+    }
+  }
+
+  // DESIGN GATE (G5): structural (đủ cột canonical) + completeness (ô lõi không rỗng). Row-quality/oracle do gate gen-testcase dưới lo.
+  {
+    const LENIENT = args.includes("--lenient") || process.env.QA_STRICT === "0";
+    const QA_APPROVED = args.includes("--qa-approved");
+    const d = designGate.gateDesign(fs.readFileSync(inputPath, "utf8"));
+    if (d.warnings && d.warnings.length) console.warn(`[design] ⚠ ${d.warnings.length} cảnh báo:\n  ~ ${d.warnings.join("\n  ~ ")}`);
+    if (d.problems && d.problems.length) {
+      const msg = `[design] ✗ ${d.problems.length} vi phạm CHẶN (thiết kế testcase — thiếu cột / rỗng ô lõi):\n  - ${d.problems.join("\n  - ")}\n→ Sửa rồi convert lại.`;
       if (!LENIENT && !QA_APPROVED) { console.error(msg); process.exit(1); }
       console.warn(`${msg}\n  [bỏ qua] vẫn convert.`);
     }
