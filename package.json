@@ -29,6 +29,7 @@
     "gate:output:fix": "node scripts/qa/output_gate.js --mode test-execution --fix",
     "gate:gen-testcase": "node scripts/qa/output_gate.js --mode gen-testcase",
     "design:gate": "node scripts/qa/design_gate.js",
+    "self-review": "node scripts/qa/self_review.js",
     "gate:policy": "node scripts/qa/policy_source_check.js",
     "preflight": "node scripts/qa/preflight_gate.js --mode generic",
     "inventory:gate": "node scripts/qa/test_inventory_gate.js",

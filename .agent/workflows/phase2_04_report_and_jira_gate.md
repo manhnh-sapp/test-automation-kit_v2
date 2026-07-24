@@ -8,6 +8,7 @@ Tạo report Phase 2 rõ ràng, không log bug sai do setup/prompt/test data, kh
 
 ## Workflow
 
+0. **SELF-REVIEW (G9 — lượt 2 TRƯỚC finalize, advisory):** `npm run self-review -- --task <TASK_KEY>` → checklist GỘP (preflight + design + row-quality + execution output/attestation) trong 1 báo cáo. Còn CHẶN thì SỬA trước; **đừng viết report / log bug khi self-review còn đỏ**. Không chặn cứng (gate thật chặn ở publish), nhưng đây là lượt tự soi bắt buộc chống "check chưa kỹ".
 1. Ghi execution summary:
    - Tổng case.
    - PASS/FAIL/SKIP.
