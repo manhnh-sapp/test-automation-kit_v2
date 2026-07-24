@@ -22,6 +22,8 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { sanitize } = require('./evidence/sanitize');   // #3: PII safety-net
+const { buildManifest, readManifest } = require('./evidence/manifest'); // #3: index evidence + kiểm tồn tại
 
 function pad2(n) { return String(n).padStart(2, '0'); }
 function ts() { try { return new Date().toISOString(); } catch { return ''; } }
@@ -55,8 +57,10 @@ function aggregateStatus({ testResultsDir, taskKey = '', runId = '', log = false
   } catch { /* chưa có shard dir */ }
   const out = { taskKey, generatedAt: ts(), ...(runId ? { runId } : {}), tests: [...byId.values()] };
   writeJsonAtomic(statusFile, out);
-  if (log) console.log(`[evidence] aggregate: ${byId.size} case (từ ${shards} shard + status cũ) → ${statusFile}`);
-  return { statusFile, count: byId.size, shards };
+  let missingCount = 0;
+  try { missingCount = buildManifest(testResultsDir).missingCount; } catch (e) { /* best-effort */ }
+  if (log) console.log(`[evidence] aggregate: ${byId.size} case (từ ${shards} shard + status cũ) → ${statusFile}${missingCount ? ` · ⚠ ${missingCount} evidence THIẾU file (xem evidence-manifest.json)` : ''}`);
+  return { statusFile, count: byId.size, shards, missingCount };
 }
 
 async function highlight(page, target) {
@@ -115,7 +119,7 @@ class Case {
     }
     await unhighlight(page, h);
     const rel = path.relative(this.rec.repoRoot, file).split(path.sep).join('/');
-    this.steps.push({ status, comment, evidence: [rel] });
+    this.steps.push({ status, comment: sanitize(comment), evidence: [rel] }); // #3: mask PII lỡ quên
     if (this.rec.log) console.log(`   [step ${idx}] ${status} — ${name} → ${path.basename(file)}`);
     return status;
   }
@@ -129,7 +133,7 @@ class Case {
     this.rec._put({
       tcId: this.tcId,
       status,
-      comment: opts.comment || (anyFail ? 'Có step FAILED — xem step evidence' : 'Executed'),
+      comment: sanitize(opts.comment || (anyFail ? 'Có step FAILED — xem step evidence' : 'Executed')),
       evidence: caseEv,
       steps: this.steps,
     });
@@ -185,12 +189,14 @@ class EvidenceRecorder {
     for (const [id, e] of this._tests) byId.set(id, e);
     const out = { taskKey: this.taskKey, generatedAt: ts(), ...(this.runId ? { runId: this.runId } : {}), tests: [...byId.values()] };
     writeJsonAtomic(this.statusFile, out);
+    // #3: sinh evidence-manifest.json (index + kiểm tồn tại) cạnh status.
+    try { buildManifest(this.testResults, { repoRoot: this.repoRoot }); } catch (e) { if (this.log) console.warn(`[evidence] manifest skip: ${e.message}`); }
     if (this.log) console.log(`\nĐã ghi ${byId.size} case (aggregate shard+in-memory, atomic) → ${path.relative(this.repoRoot, this.statusFile).split(path.sep).join('/')}`);
     return this.statusFile;
   }
 }
 
-module.exports = { EvidenceRecorder, highlight, unhighlight, aggregateStatus, writeJsonAtomic };
+module.exports = { EvidenceRecorder, highlight, unhighlight, aggregateStatus, writeJsonAtomic, sanitize, buildManifest, readManifest };
 
 // CLI: gộp shard → testcase-status.json (chạy 1 lần cuối ở global-teardown / job merge CI).
 //   node scripts/utils/evidence_recorder.js --aggregate --test-results <dir> [--task <KEY>] [--run <RUN_ID>]
