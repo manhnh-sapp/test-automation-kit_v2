@@ -21,6 +21,9 @@ jobs:
       - name: Install deps
         run: npm ci
 
+      - name: Preflight (G1 — config/context integrity, miss-file/PARSE_FAILURE = đỏ)
+        run: npm run preflight
+
       - name: Syntax check (node --check toàn bộ script committed)
         run: |
           set -e

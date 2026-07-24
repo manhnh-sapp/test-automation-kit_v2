@@ -3,6 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 const outputGate = require("../qa/output_gate"); // gate gen-testcase (RULE_GLOBAL §6: KQ khớp bước, cấm gộp range/chung chung)
+const preflight = require("../qa/preflight_gate"); // G1: input/config bắt buộc đủ & parse được (miss-file/PARSE_FAILURE = CHẶN)
 
 let ExcelJS;
 try {
@@ -413,6 +414,19 @@ async function main() {
   if (tables.length === 0) {
     console.error("No testcase markdown table found.");
     process.exit(1);
+  }
+
+  // PREFLIGHT (G1): input/config bắt buộc phải đủ & parse được TRƯỚC khi convert (miss-file/PARSE_FAILURE = CHẶN).
+  {
+    const LENIENT = args.includes("--lenient") || process.env.QA_STRICT === "0";
+    const QA_APPROVED = args.includes("--qa-approved");
+    const pf = preflight.runPreflight({ mode: "phase1" });
+    if (pf.warnings && pf.warnings.length) console.warn(`[preflight] ⚠ ${pf.warnings.join(" | ")}`);
+    if (pf.problems && pf.problems.length) {
+      const msg = `[preflight] ✗ ${pf.problems.length} input bắt buộc thiếu/hỏng:\n  - ${pf.problems.join("\n  - ")}\n→ Đọc/sửa input rồi convert lại.`;
+      if (!LENIENT && !QA_APPROVED) { console.error(msg); process.exit(1); }
+      console.warn(`${msg}\n  [bỏ qua] vẫn convert.`);
+    }
   }
 
   // GATE gen-testcase: CHẶN convert nếu "Kết quả mong đợi" không khớp số bước / gộp range / chung chung.

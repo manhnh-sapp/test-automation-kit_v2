@@ -14,6 +14,7 @@ static-check:
   image: node:20
   script:
     - npm ci --prefer-offline --no-audit --no-fund
+    - node scripts/qa/preflight_gate.js --mode generic   # G1: config/context integrity (miss-file/PARSE_FAILURE = đỏ)
     - find scripts -name '*.js' -print0 | xargs -0 -n1 node --check
     - find scripts -name '*.mjs' -print0 | xargs -0 -n1 node --check
     - node -e "['knowledge/index.json','.agent/config/risk_model.example.json','.agent/config/dashboard.branding.example.json'].forEach(f=>{JSON.parse(require('fs').readFileSync(f,'utf8'));console.log('JSON OK',f)})"

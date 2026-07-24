@@ -8,6 +8,7 @@ Tránh chạy nhầm task, nhầm story hoặc thiếu env khiến testcase bị
 
 ## Workflow
 
+0. **PREFLIGHT (G1 — chạy TRƯỚC MỌI thứ, forcing gate):** `node scripts/qa/preflight_gate.js --mode phase2 --task <TASK_KEY>` → CHẶN nếu thiếu input bắt buộc (project_context, config JSON malformed) hoặc **testcase canonical local chưa có** (chưa kéo Xray / chưa có Excel). Chưa ĐẠT thì DỪNG, đọc/sửa input rồi mới execute — đừng chạy trên nền thiếu.
 1. Echo lại:
    - `PROJECT_OUTPUT_DIR`
    - `TASK_KEY`
