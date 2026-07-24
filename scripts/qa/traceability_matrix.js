@@ -21,6 +21,7 @@
 const fs = require('fs');
 const path = require('path');
 const rc = require(path.resolve(__dirname, '..', 'utils', 'runtime_config'));
+const testcaseModel = require(path.resolve(__dirname, '..', 'lib', 'testcase')); // #1: parser canonical DUY NHẤT
 
 const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i >= 0 && process.argv[i + 1] && !process.argv[i + 1].startsWith('--') ? process.argv[i + 1] : d; };
 const normId = (s) => String(s || '').trim().toUpperCase();
@@ -39,21 +40,8 @@ function parseTestcases(dir) {
   const rows = [];
   if (!fs.existsSync(dir)) return rows;
   for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.md'))) {
-    const lines = fs.readFileSync(path.join(dir, f), 'utf8').split(/\r?\n/);
-    const hi = lines.findIndex((l) => l.includes('|') && /TC ID/i.test(l) && /Module/i.test(l));
-    if (hi < 0) continue;
-    const cols = lines[hi].split('|').map((c) => c.trim());
-    const tcI = cols.findIndex((c) => /^TC ID$/i.test(c));
-    const modI = cols.findIndex((c) => /^Module$/i.test(c));
-    for (let i = hi + 1; i < lines.length; i++) {
-      const l = lines[i];
-      if (!/^\s*\|/.test(l)) { if (l.trim() === '') continue; break; }
-      if (/^\s*\|[\s|:-]+\|?\s*$/.test(l)) continue;
-      const cells = l.split('|').map((c) => c.trim());
-      const tcId = cells[tcI];
-      if (!tcId || /^TC ID$/i.test(tcId)) continue;
-      rows.push({ tcId: normId(tcId), module: (cells[modI] || '').split('/')[0].trim() || '(none)', file: f });
-    }
+    const doc = testcaseModel.parseMarkdown(fs.readFileSync(path.join(dir, f), 'utf8'));
+    for (const t of doc.tests) rows.push({ tcId: normId(t.tcId), module: (t.module || '').split('/')[0].trim() || '(none)', file: f });
   }
   return rows;
 }

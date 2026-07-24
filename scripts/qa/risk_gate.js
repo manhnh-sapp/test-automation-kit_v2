@@ -17,6 +17,7 @@
 const fs = require('fs');
 const path = require('path');
 const rc = require(path.resolve(__dirname, '..', 'utils', 'runtime_config'));
+const testcaseModel = require(path.resolve(__dirname, '..', 'lib', 'testcase')); // #1: parser canonical DUY NHẤT
 const DEFAULT_MODEL = JSON.parse(fs.readFileSync(path.join(rc.REPO_ROOT, '.agent', 'config', 'risk_model.example.json'), 'utf8'));
 
 function arg(name, def) {
@@ -41,30 +42,19 @@ function tod() {
 
 const norm = (s) => String(s || '').toLowerCase().replace(/\[[^\]]*\]/g, '').replace(/\s+/g, ' ').trim();
 
-// Đọc testcase markdown → đếm TC per group (phần trước "/" ở cột Module) + dimension keyword.
+// #1: delegate parser canonical → đếm TC per group (phần trước "/" cột Module) + dimension keyword.
+// dim match trên toàn-dòng (join _cells) ~ old `line.toLowerCase()` để giữ verdict; chống pipe-shift.
 function parseTestcases(dir, dimKw) {
   const groups = new Map();
   if (!fs.existsSync(dir)) return groups;
   for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.md'))) {
-    const lines = fs.readFileSync(path.join(dir, f), 'utf8').split(/\r?\n/);
-    let modIdx = -1;
-    for (const line of lines) {
-      if (!line.trim().startsWith('|')) { if (modIdx !== -1 && !line.trim()) modIdx = -1; continue; }
-      const cells = line.split('|').slice(1, -1).map((c) => c.trim());
-      if (modIdx === -1) {
-        const idx = cells.findIndex((c) => /(^|\b)module\b/i.test(c) || c === 'Module');
-        const hasTc = cells.some((c) => /tc\s*id/i.test(c));
-        if (idx >= 0 && hasTc) modIdx = idx; // header row
-        continue;
-      }
-      if (cells.every((c) => /^-+:?$/.test(c) || c === '')) continue; // separator
-      const modCell = cells[modIdx] || '';
-      if (!modCell || /tc\s*id/i.test(modCell)) continue;
-      const group = modCell.split('/')[0].trim();
+    const doc = testcaseModel.parseMarkdown(fs.readFileSync(path.join(dir, f), 'utf8'));
+    for (const t of doc.tests) {
+      const group = (t.module || '').split('/')[0].trim();
       if (!group) continue;
       const g = groups.get(group) || { group, count: 0, dims: new Set() };
       g.count++;
-      const rowText = line.toLowerCase();
+      const rowText = Object.values(t._cells).join(' ').toLowerCase();
       for (const [dim, kws] of Object.entries(dimKw)) if (kws.some((k) => rowText.includes(String(k).toLowerCase()))) g.dims.add(dim);
       groups.set(group, g);
     }

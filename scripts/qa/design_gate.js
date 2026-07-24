@@ -19,6 +19,7 @@
 const fs = require('fs');
 const path = require('path');
 const outputGate = require(path.resolve(__dirname, 'output_gate'));
+const testcaseModel = require(path.resolve(__dirname, '..', 'lib', 'testcase')); // #1: parser canonical DUY NHẤT
 
 // Cột canonical của bảng testcase 9 cột (khớp prompt gen Phase 1). 'Dữ liệu Test' optional.
 const REQUIRED_COLS = ['TC ID', 'Module', 'Trường hợp kiểm thử', 'Tiền điều kiện', 'Các bước thực hiện', 'Kết quả mong đợi', 'Ưu tiên', 'Mức độ rủi ro'];
@@ -26,26 +27,10 @@ const REQUIRED_COLS = ['TC ID', 'Module', 'Trường hợp kiểm thử', 'Tiề
 const REQUIRED_CELLS = ['Module', 'Trường hợp kiểm thử', 'Các bước thực hiện', 'Ưu tiên', 'Mức độ rủi ro'];
 
 // Parse bảng testcase → { found, header:[], rows:[{colName: value}] }.
+// #1: delegate parser canonical (chống pipe-shift). rows = _cells (original-header → cleaned cell).
 function parseFullTable(md) {
-  const lines = String(md || '').split(/\r?\n/);
-  const hi = lines.findIndex((l) => l.includes('|') && /TC ID/i.test(l) && /Kết quả mong đợi/i.test(l));
-  if (hi < 0) return { found: false, header: [], rows: [] };
-  const header = lines[hi].split('|').map((c) => c.trim()).filter((c, i, a) => !(i === 0 && !c) && !(i === a.length - 1 && !c));
-  const rows = [];
-  for (let i = hi + 1; i < lines.length; i++) {
-    const l = lines[i];
-    if (!/^\s*\|/.test(l)) { if (l.trim() === '') continue; break; }
-    if (/^\s*\|[\s|:-]+\|?\s*$/.test(l)) continue; // separator |---|
-    const cells = l.split('|').map((c) => c.trim());
-    // cells có phần tử rỗng đầu/cuối do pipe biên → map theo vị trí header (bù offset 1 nếu có leading empty)
-    const offset = cells[0] === '' ? 1 : 0;
-    const row = {};
-    header.forEach((h, idx) => { row[h] = (cells[idx + offset] || '').trim(); });
-    const tcId = row['TC ID'] || '';
-    if (!tcId || tcId.toLowerCase() === 'tc id') continue;
-    rows.push(row);
-  }
-  return { found: true, header, rows };
+  const doc = testcaseModel.parseMarkdown(md);
+  return { found: doc.tests.length > 0, header: doc.headers, rows: doc.tests.map((t) => t._cells) };
 }
 
 function gateDesign(md) {

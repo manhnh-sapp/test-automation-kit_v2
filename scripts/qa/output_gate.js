@@ -22,6 +22,7 @@
 const fs = require('fs');
 const path = require('path');
 const rules = require(path.resolve(__dirname, 'lib', 'output_rules'));
+const testcaseModel = require(path.resolve(__dirname, '..', 'lib', 'testcase')); // #1: parser canonical DUY NHẤT
 
 const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i >= 0 && process.argv[i + 1] && !process.argv[i + 1].startsWith('--') ? process.argv[i + 1] : d; };
 const has = (n) => process.argv.includes(`--${n}`);
@@ -173,25 +174,11 @@ function mainBug() {
   console.log('\n[gate] BLOCK.'); process.exit(1);
 }
 
-// ---- gen-testcase: parse bảng testcase 9 cột trong Markdown ----
+// ---- gen-testcase: parse bảng testcase 9 cột (#1: delegate parser canonical, chống pipe-shift) ----
+// stepsRaw/expectedRaw = cleanCell (<br>→\n); gateTestcaseRow xử lý cả <br> lẫn \n nên tương thích.
 function parseTestcaseTable(md) {
-  const lines = String(md || '').split(/\r?\n/);
-  const hi = lines.findIndex((l) => l.includes('|') && /TC ID/i.test(l) && /Kết quả mong đợi/i.test(l));
-  if (hi < 0) return { rows: [], found: false };
-  const cols = lines[hi].split('|').map((c) => c.trim());
-  const idx = (name) => cols.findIndex((c) => c.toLowerCase() === name.toLowerCase());
-  const tcI = idx('TC ID'); const stepI = idx('Các bước thực hiện'); const expI = idx('Kết quả mong đợi');
-  const rows = [];
-  for (let i = hi + 1; i < lines.length; i++) {
-    const l = lines[i];
-    if (!/^\s*\|/.test(l)) { if (l.trim() === '') continue; break; } // hết bảng (dòng không phải |… )
-    if (/^\s*\|[\s|:-]+\|?\s*$/.test(l)) continue; // dòng separator |---|
-    const cells = l.split('|').map((c) => c.trim());
-    const tcId = cells[tcI] || '';
-    if (!tcId || tcId.toLowerCase() === 'tc id') continue;
-    rows.push({ tcId, steps: cells[stepI] || '', expected: cells[expI] || '' });
-  }
-  return { rows, found: true };
+  const doc = testcaseModel.parseMarkdown(md);
+  return { rows: doc.tests.map((t) => ({ tcId: t.tcId, steps: t.stepsRaw, expected: t.expectedRaw })), found: doc.tests.length > 0 };
 }
 
 // Trả về { problems (CHẶN), warnings (cảnh báo) }. `;`-packing là warning trừ khi strictSemicolon.
