@@ -8,10 +8,12 @@
 
 const model = require('./model');
 const { parseMarkdown, parseTablesMatching } = require('./parseMarkdown');
+const { parseXlsx, cellText } = require('./parseXlsx');
 const { validate, REQUIRED_COLS, REQUIRED_FIELDS } = require('./validate');
 
 module.exports = {
   ...model,
   parseMarkdown, parseTablesMatching,
+  parseXlsx, cellText,
   validate, REQUIRED_COLS, REQUIRED_FIELDS,
 };

@@ -39,6 +39,7 @@ export interface TestCaseDoc {
 export interface ValidateResult { problems: string[]; warnings: string[]; }
 
 export function parseMarkdown(mdOrPath: string, opts?: { story?: string }): TestCaseDoc;
+export function parseXlsx(filePath: string, opts?: { story?: string }): Promise<TestCaseDoc>;
 export function validate(doc: TestCaseDoc): ValidateResult;
 export function cleanCell(text: string): string;
 export function normalizeHeader(text: string): string;

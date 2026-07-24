@@ -5,6 +5,7 @@ const path = require("path");
 const outputGate = require("../qa/output_gate"); // gate gen-testcase (RULE_GLOBAL §6: KQ khớp bước, cấm gộp range/chung chung)
 const preflight = require("../qa/preflight_gate"); // G1: input/config bắt buộc đủ & parse được (miss-file/PARSE_FAILURE = CHẶN)
 const designGate = require("../qa/design_gate"); // G5: structural (đủ cột) + completeness (ô lõi không rỗng)
+const canonical = require("../lib/testcase"); // #1: table-scanner + predicate DUY NHẤT (thay parser nội bộ)
 
 let ExcelJS;
 try {
@@ -20,13 +21,6 @@ function stripEmoji(text) {
 
 function cleanCell(text) {
   return stripEmoji(String(text || "").replace(/<br\s*\/?>/gi, "\n").replace(/`([^`]*)`/g, "$1"));
-}
-
-function splitMarkdownRow(line) {
-  return line
-    .split(/(?<!\\)\|/)
-    .slice(1, -1)
-    .map((cell) => cell.replace(/\\\|/g, "|").trim());
 }
 
 function normalizeHeaderName(text) {
@@ -135,27 +129,6 @@ function sanitizeSheetName(name, usedNames) {
   return candidate;
 }
 
-function isTestCaseTableHeader(headers) {
-  const normalized = headers.map(normalizeHeaderName);
-  const hasId = normalized.some((name) => name === "id" || name === "tc id" || name.endsWith(" tc id"));
-  const hasScenario = normalized.some((name) =>
-    ["scenario", "test title", "test case", "truong hop kiem thu"].includes(name) ||
-    name.includes("scenario") ||
-    name.includes("steps") ||
-    name.includes("expected") ||
-    name.includes("ket qua") ||
-    name.includes("truong hop"),
-  );
-  return hasId && hasScenario;
-}
-
-function isSetupContractHeader(headers) {
-  const normalized = headers.map(normalizeHeaderName);
-  const hasPreId = normalized.some((name) => name.includes("precondition id"));
-  const hasStrategy = normalized.some((name) => name.includes("setup strategy"));
-  return hasPreId && hasStrategy;
-}
-
 function getContractColumnWidth(header) {
   const name = normalizeHeaderName(header);
   if (name.includes("precondition id")) return 16;
@@ -196,51 +169,13 @@ function estimateRowHeight(row, colWidths) {
   return Math.min(150, Math.max(24, maxLines * 15));
 }
 
-function parseTablesMatching(lines, predicate) {
-  const tables = [];
-  let currentTable = null;
-  let expectingSeparator = false;
-
-  for (const line of lines) {
-    const stripped = line.trim();
-
-    if (!currentTable && stripped.startsWith("|")) {
-      const headers = splitMarkdownRow(stripped);
-      if (predicate(headers)) {
-        currentTable = { headers, rows: [] };
-        expectingSeparator = true;
-      }
-      continue;
-    }
-
-    if (currentTable && expectingSeparator && /^\|[\s\-:|]+\|$/.test(stripped)) {
-      expectingSeparator = false;
-      continue;
-    }
-
-    if (currentTable && stripped.startsWith("|")) {
-      const cells = splitMarkdownRow(stripped);
-      if (cells.length > 0) currentTable.rows.push(cells);
-      continue;
-    }
-
-    if (currentTable && currentTable.rows.length > 0) tables.push(currentTable);
-    currentTable = null;
-    expectingSeparator = false;
-  }
-
-  if (currentTable && currentTable.rows.length > 0) tables.push(currentTable);
-  return tables;
-}
-
+// #1: delegate table-scanner canonical (cùng logic split \| → xlsx y hệt; predicate đòi expected khớp gate).
 function parseMdTables(filePath) {
-  const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
-  return parseTablesMatching(lines, isTestCaseTableHeader);
+  return canonical.parseTablesMatching(fs.readFileSync(filePath, "utf8").split(/\r?\n/), canonical.isTestCaseHeader);
 }
 
 function parseSetupContractTables(filePath) {
-  const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
-  return parseTablesMatching(lines, isSetupContractHeader);
+  return canonical.parseTablesMatching(fs.readFileSync(filePath, "utf8").split(/\r?\n/), canonical.isSetupContractHeader);
 }
 
 function columnIndexToName(index) {
