@@ -121,6 +121,20 @@ function gateTestExecution(doc, { fix = false } = {}) {
     }
   }
 
+  // G6 (round-3): attestation-verify — ĐỐI CHIẾU tự-khai của agent với sự thật đã tính (WARN, không chặn).
+  // Chống "tick suông": không tin mỗi câu "tôi đã đọc/đã làm", mà so claim ↔ output máy kiểm được.
+  const att = (doc && !Array.isArray(doc)) ? doc.attestation : null;
+  if (!att) {
+    warnings.push('CHƯA có attestation block (doc.attestation) — agent nên tự khai {oracleSource, executed, allEvidenceAttached, failuresClassified, rerunDone}; gate đối chiếu để chống "tick suông".');
+  } else {
+    const failLayerMiss = problems.filter((p) => /phân tầng lỗi/.test(p)).length;
+    const evMiss = problems.filter((p) => /evidence/i.test(p)).length;
+    if (att.executed != null && Number(att.executed) !== executed) warnings.push(`Attestation "executed=${att.executed}" LỆCH số case execute thật (${executed}) — khai lại đúng.`);
+    if (att.allEvidenceAttached === true && evMiss) warnings.push(`Attestation "allEvidenceAttached=true" MÂU THUẪN: gate thấy ${evMiss} vấn đề evidence.`);
+    if (att.failuresClassified === true && failLayerMiss) warnings.push(`Attestation "failuresClassified=true" MÂU THUẪN: gate thấy ${failLayerMiss} FAIL thiếu tầng-lỗi.`);
+    if (!att.oracleSource) warnings.push('Attestation thiếu "oracleSource" (nguồn oracle: xray/spec/figma/api-contract…) — nêu để chống oracle tự chế.');
+  }
+
   return { problems, warnings, fixes, executed, doc: Array.isArray(doc) ? { tests } : doc };
 }
 

@@ -12,6 +12,8 @@
 > 5. **Loại flaky** — FAIL rerun 2–3 lần loại flaky/setup TRƯỚC khi kết luận product/API bug / log Jira.
 > 6. **Evidence** — mọi case (PASS+FAIL)+step có ảnh/video đúng màn (response/assertion hiển thị), highlight, mask PII; case phức tạp có video. CẤM `.json/.md/.log`. *(gate: thiếu evidence/step-status = CHẶN)*
 
+> 📋 **Attestation (G6) — sau execute, ghi vào `testcase-status.json`:** field `attestation` = `{ "oracleSource": "<xray|spec|api-contract>", "executed": <số case đã chạy>, "allEvidenceAttached": true, "failuresClassified": true, "rerunDone": true }`. Gate ĐỐI CHIẾU tự-khai với sự thật (executed thật, evidence, tầng-lỗi) — lệch = cảnh báo. Khai ĐÚNG, đừng tick suông.
+
 # Vai trò
 Bạn là Senior API Test Engineer dùng Playwright API mode.
 
