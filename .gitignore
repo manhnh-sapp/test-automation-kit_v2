@@ -142,7 +142,8 @@ scripts/integrations/jira/unassign_tests_backup.json
 
 # Claude Code local files
 .claude/
-CLAUDE.md
+# CLAUDE.md: COMMIT (G3 round-3) — non-negotiables shared, context-resident cho mọi phiên/mọi người.
+# (Personal global instructions vẫn để ở ~/.claude/CLAUDE.md, không nằm repo.)
 
 # Task outputs — dữ liệu chạy per-task, KHÔNG commit; chỉ giữ khung outputs/
 /outputs/*
