@@ -32,16 +32,17 @@ export async function ensureOpsAuth(page: Page, context: BrowserContext, opts: E
     const rec = sessionCache.load(key);
     const ss = (rec && rec.storageState) || { cookies: [], origins: [] };
     if (Array.isArray(ss.cookies) && ss.cookies.length) await context.addCookies(ss.cookies);
+    // Seed localStorage (actToken/refreshToken) TRƯỚC mọi navigation: addInitScript chạy trước script trang
+    // → token có sẵn khi app check auth → KHÔNG bị redirect /auth/login (bug phát hiện qua UAT smoke).
     for (const o of ss.origins || []) {
-      try {
-        await page.goto(o.origin, { waitUntil: 'domcontentloaded', timeout: 30000 });
-        await page.evaluate((items: Array<{ name: string; value: string }>) => {
-          for (const it of items) window.localStorage.setItem(it.name, it.value);
-        }, o.localStorage || []);
-      } catch {
-        /* origin không mở được → bỏ; caller nên verify đã login, nếu chưa thì gọi lại với prefer:'ui' */
+      if (Array.isArray(o.localStorage) && o.localStorage.length) {
+        await context.addInitScript((items: Array<{ name: string; value: string }>) => {
+          try { for (const it of items) window.localStorage.setItem(it.name, it.value); } catch (e) { /* origin khác scope */ }
+        }, o.localStorage);
       }
     }
+    const base = (ss.origins && ss.origins[0] && ss.origins[0].origin) || process.env.OPS_BASE_URL || '';
+    if (base) await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => { /* verify ở caller */ });
     return 'storage(reuse)';
   }
 

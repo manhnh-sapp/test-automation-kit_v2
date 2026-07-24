@@ -111,6 +111,8 @@ class Case {
     }
     if (!status) status = 'PASSED';
     const h = await highlight(page, opts.highlight);
+    // #3/problem-4: settle 1 paint (double-rAF) sau highlight+scroll → giảm chụp trúng lúc rerender detach.
+    if (h) { try { await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))); } catch (e) { /* settle best-effort */ } }
     const file = path.join(this.dir, `step-${pad2(idx)}-${status.toLowerCase()}.png`);
     try {
       await page.screenshot({ path: file, fullPage: true, mask: opts.mask || [], maskColor: '#8a8a8a' });
