@@ -67,7 +67,7 @@ Nếu precondition chỉ có thể DỰNG bằng DB hoặc backend internal stat
 9. Sau mỗi vòng chạy, phân tích PASS/FAIL/SKIP và nguyên nhân fail/skip.
 10. PASS -> next TC khi assertion thực sự validate đúng status/schema/body/business rule.
 11. FAIL -> retry/auto-heal nếu lỗi do auth/setup/data/mock/dependency/timeout/test code; sau khi sửa phải rerun.
-12. Nếu FAIL còn lại là product/API contract issue, rerun case fail 2-3 lần để loại trừ flaky/setup trước khi kết luận.
+12. Nếu FAIL còn lại là product/API contract issue, rerun case fail theo ngưỡng `.agent/config/verdict_taxonomy.json` §rerun (min–max, hiện 2–3 lần) để loại trừ flaky/setup trước khi kết luận.
 13. SKIP chỉ được phép khi không thể chạy sau khi đã thử sửa setup/data/dependency hợp lý; report phải ghi TC ID, lý do skip, có thể sửa để chạy được không.
 14. Jira bug chỉ xử lý sau khi execution report hoàn tất, fail đã được rerun/xác nhận và user/prompt cho phép.
 

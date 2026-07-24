@@ -28,7 +28,7 @@ const rc = require(path.resolve(__dirname, '..', 'utils', 'runtime_config'));
 const MANIFEST = {
   generic: {
     require: ['knowledge/index.json', '.agent/config/project_context.md'],
-    parse: ['knowledge/index.json', '.agent/config/risk_model.example.json', '.agent/config/dashboard.branding.example.json'],
+    parse: ['knowledge/index.json', '.agent/config/risk_model.example.json', '.agent/config/dashboard.branding.example.json', '.agent/config/verdict_taxonomy.json'],
     recommend: ['.agent/config/risk_model.json'],
   },
   phase1: {

@@ -66,7 +66,7 @@ Nếu precondition chỉ có thể DỰNG bằng DB hoặc backend internal stat
 8. Sau mỗi vòng chạy, phân tích PASS/FAIL/SKIP và nguyên nhân fail/skip.
 9. Nếu automation fail do locator/timing/test code/setup/data/mock/timeout/dependency, auto-heal và rerun tối đa 5 vòng cho từng nhóm lỗi.
 10. Nếu testcase bị SKIP, phải ghi TC ID, lý do skip, đã thử sửa gì, có thể sửa để chạy được không; nếu sửa được thì ưu tiên sửa và rerun thay vì giữ skip.
-11. Nếu product fail, rerun case fail 2-3 lần để loại trừ flaky/setup, rồi lưu evidence theo rule bên dưới.
+11. Nếu product fail, rerun case fail theo ngưỡng `.agent/config/verdict_taxonomy.json` §rerun (min–max, hiện 2–3 lần) để loại trừ flaky/setup, rồi lưu evidence theo rule bên dưới.
 12. Cập nhật testcase output và execution summary. Nếu có `RUN_ID`, chỉ cập nhật run-scoped report/status, không ghi trực tiếp testcase Markdown/Excel chính.
 13. Chỉ log Jira sau khi report PASS/FAIL/SKIP hoàn tất, fail đã được rerun/xác nhận và user/prompt cho phép.
 

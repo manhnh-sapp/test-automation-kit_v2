@@ -14,7 +14,7 @@ Chạy bước log bug Jira trong Phase 2.
 - Đã auto-heal lỗi automation nếu có.
 - Đã cập nhật testcase output với `Status` và `Actual Result`.
 - Đã có execution summary phân loại `PASS` / `FAIL` / `SKIP`.
-- Testcase FAIL đã được rerun ít nhất 2-3 lần hoặc report ghi rõ số lần rerun đủ để loại trừ flaky/setup.
+- Testcase FAIL đã được rerun đủ ngưỡng `.agent/config/verdict_taxonomy.json` §rerun (min lần, hiện ≥2–3) hoặc report ghi rõ số lần rerun đủ để loại trừ flaky/setup.
 - Execution summary đã loại trừ các nguyên nhân không thuộc product bug: prompt chưa rõ, test data sai/thiếu, setup/environment lỗi, mock/stub sai, dependency chưa sẵn sàng, timeout, locator/test harness/cleanup/auth lỗi.
 - Expected result đã được xác nhận đúng bằng requirement/API/design hoặc review hợp lệ.
 - Actual result có evidence rõ ràng đã sanitize. Evidence dùng để phân tích local có thể gồm response log, trace, error-context hoặc error message; evidence upload lên Jira chỉ được là ảnh/video.
@@ -81,7 +81,7 @@ Các bước thực hiện:
 4. Đối chiếu danh sách fail với execution summary để chỉ log bug cho testcase đã được report là FAIL sau auto-heal.
 5. Với từng testcase FAIL, kiểm tra điều kiện log bug:
    - Không phải SKIP.
-   - Đã rerun 2-3 lần hoặc có ghi nhận rerun đủ trong summary.
+   - Đã rerun đủ ngưỡng (verdict_taxonomy.json §rerun, hiện 2-3 lần) hoặc có ghi nhận rerun đủ trong summary.
    - Không còn nguyên nhân automation/harness/setup/test data/mock/dependency/timeout/auth/locator/cleanup.
    - Expected result đã xác nhận đúng.
    - Evidence rõ ràng và không trắng.

@@ -35,6 +35,27 @@ const PASS_RE = /^(pass|passed)$/i;
 const FAIL_RE = /^(fail|failed)$/i;
 const isExecuted = (s) => PASS_RE.test(String(s || '').trim()) || FAIL_RE.test(String(s || '').trim());
 
+// G4 (round-3): verdict taxonomy 1-nguồn — validate status field ∈ statuses (verdict lạ = cảnh báo).
+let _taxonomy = null;
+function loadTaxonomy() {
+  if (_taxonomy) return _taxonomy;
+  try {
+    const p = path.resolve(__dirname, '..', '..', '.agent', 'config', 'verdict_taxonomy.json');
+    _taxonomy = JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch (e) {
+    _taxonomy = { statuses: { PASS: {}, FAIL: {}, SKIP: {}, TODO: {}, BLOCKED_SETUP: {}, SKIP_SETUP: {} }, synonyms: { PASSED: 'PASS', FAILED: 'FAIL', SKIPPED: 'SKIP' } };
+  }
+  return _taxonomy;
+}
+function canonStatus(raw) {
+  const s = String(raw || '').trim().toUpperCase();
+  if (!s) return null;
+  const tax = loadTaxonomy();
+  if (tax.statuses && tax.statuses[s]) return s;
+  if (tax.synonyms && tax.synonyms[s]) return tax.synonyms[s];
+  return null;
+}
+
 // evidence có thể là string | array; step dùng evidence | evidences.
 const evList = (v) => (Array.isArray(v) ? v : (v ? [v] : [])).map(String).filter(Boolean);
 
@@ -47,6 +68,10 @@ function gateTestExecution(doc, { fix = false } = {}) {
 
   for (const t of tests) {
     const id = t.testKey || t.tcId || t.id || '(no-id)';
+    // G4: verdict ∈ taxonomy (mọi status, kể cả chưa execute) — verdict tự chế = cảnh báo.
+    if (String(t.status || '').trim() && !canonStatus(t.status)) {
+      warnings.push(`${id}: status "${t.status}" không thuộc verdict taxonomy — dùng PASS/FAIL/SKIP/BLOCKED_SETUP/SKIP_SETUP/TODO (.agent/config/verdict_taxonomy.json)`);
+    }
     if (!isExecuted(t.status)) continue;
     executed++;
 
@@ -232,6 +257,6 @@ function main() {
   process.exit(1);
 }
 
-module.exports = { gateTestExecution, gateBug, gateTestcaseRow, parseTestcaseTable, isExecuted };
+module.exports = { gateTestExecution, gateBug, gateTestcaseRow, parseTestcaseTable, isExecuted, canonStatus, loadTaxonomy };
 
 if (require.main === module) main();

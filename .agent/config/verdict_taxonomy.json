@@ -1,0 +1,22 @@
+{
+  "_note": "G4 (round-3) — NGUỒN DUY NHẤT cho verdict/trạng thái kết quả + ngưỡng rerun. Gate validate status ∈ statuses (unknown = cảnh báo); prompt/rule TRỎ VỀ đây thay vì hardcode rải rác. Đổi số/nghĩa ở ĐÂY, KHÔNG sửa từng file. TÊN status khớp cột Status của testcase (canonical).",
+  "statuses": {
+    "PASS": { "executed": true, "loggableAsBug": false, "xray": "PASSED", "meaning": "Chạy thật, đúng kỳ vọng (oracle độc lập theo spec)." },
+    "FAIL": { "executed": true, "loggableAsBug": true, "xray": "FAILED", "meaning": "Chạy thật, sai kỳ vọng — PHẢI phân tầng lỗi (xem failureLayers)." },
+    "SKIP": { "executed": false, "loggableAsBug": false, "xray": "TODO", "meaning": "Không chạy — kèm lý do + khả năng fix." },
+    "BLOCKED_SETUP": { "executed": false, "loggableAsBug": false, "xray": "TODO", "meaning": "Readiness=Needs hook mà thiếu capability (hook/mock/sandbox) — nêu missing cụ thể." },
+    "SKIP_SETUP": { "executed": false, "loggableAsBug": false, "xray": "TODO", "meaning": "Readiness=Manual-only — không tự setup." },
+    "TODO": { "executed": false, "loggableAsBug": false, "xray": "TODO", "meaning": "Chưa thực thi (mặc định Xray) — KHÔNG dùng khi đã chạy được." }
+  },
+  "synonyms": { "PASSED": "PASS", "FAILED": "FAIL", "SKIPPED": "SKIP", "BLOCKED": "BLOCKED_SETUP" },
+  "failureLayers": {
+    "product_bug": { "loggableAsBug": true, "desc": "Lỗi sản phẩm/nghiệp vụ thật." },
+    "api_bug": { "loggableAsBug": true, "desc": "Lỗi API/contract." },
+    "setup_failure": { "loggableAsBug": false, "desc": "Lỗi dựng precondition/data/auth/hook/env — KHÔNG log Jira." },
+    "infra": { "loggableAsBug": false, "desc": "Hạ tầng/CI/timeout môi trường." },
+    "flaky": { "loggableAsBug": false, "desc": "Chập chờn — pass sau retry; loại trước khi kết luận." },
+    "dependency": { "loggableAsBug": false, "desc": "Phụ thuộc ngoài chưa sẵn." }
+  },
+  "rerun": { "min": 2, "max": 3, "purpose": "Rerun case FAIL để loại flaky/setup TRƯỚC khi kết luận product/API bug (và trước khi log Jira)." },
+  "principle": "\"Không phán được\" KHÔNG thành PASS. Mỗi verdict xuất trạng thái rõ; FAIL bắt buộc kèm failureLayer. SKIP/BLOCKED_SETUP/SKIP_SETUP/setup_failure KHÔNG log Jira."
+}
