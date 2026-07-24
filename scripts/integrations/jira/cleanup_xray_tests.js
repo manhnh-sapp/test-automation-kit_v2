@@ -4,13 +4,7 @@ const fs = require('fs');
 const https = require('https');
 const path = require('path');
 
-let ExcelJS;
-try {
-  ExcelJS = require('exceljs');
-} catch {
-  console.error('Missing dependency: exceljs. Run `npm install` at the repo root.');
-  process.exit(1);
-}
+const testcaseModel = require('../../lib/testcase'); // #1: parseXlsx canonical (đọc xlsx qua adapter chung; exceljs do adapter lo)
 
 const {
   getProjectOutputDir,
@@ -285,96 +279,15 @@ function scanExcelDir(dirPath) {
 
 async function readTestcasesFromExcelFiles(excelFiles) {
   const byTcId = new Map();
-
   for (const excelFile of excelFiles) {
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(excelFile);
-    const sheet = findTestcaseSheet(workbook);
-    if (!sheet) continue;
-
-    const headerInfo = findHeaderRow(sheet);
-    if (!headerInfo) continue;
-
-    const { headerRowNumber, headers, indexes } = headerInfo;
-    sheet.eachRow((row, rowNumber) => {
-      if (rowNumber <= headerRowNumber) return;
-      const cells = headers.map((_, index) => cellText(row.getCell(index + 1)));
-      const tcId = cells[indexes.tcId] || '';
-      if (!tcId.trim()) return;
-
-      const testcase = {
-        tcId: tcId.trim(),
-        title: indexes.title >= 0 ? cells[indexes.title] || '' : '',
-        sourceExcel: excelFile,
-      };
-
+    // #1: parse qua canonical parseXlsx (parity EXACT v\u1edbi read t\u1ef1 ch\u1ebf tr\u00ean 27 xlsx local, zero Xray).
+    const doc = await testcaseModel.parseXlsx(excelFile);
+    for (const t of doc.tests) {
+      const testcase = { tcId: t.tcId, title: t.title, sourceExcel: excelFile };
       if (!byTcId.has(testcase.tcId)) byTcId.set(testcase.tcId, testcase);
-    });
-  }
-
-  return Array.from(byTcId.values());
-}
-
-function findTestcaseSheet(workbook) {
-  const named = workbook.getWorksheet('Test Cases');
-  if (named && findHeaderRow(named)) return named;
-
-  for (const sheet of workbook.worksheets) {
-    if (findHeaderRow(sheet)) return sheet;
-  }
-  return null;
-}
-
-function findHeaderRow(sheet) {
-  for (let rowNumber = 1; rowNumber <= Math.min(20, sheet.rowCount); rowNumber += 1) {
-    const row = sheet.getRow(rowNumber);
-    const headers = [];
-    for (let col = 1; col <= Math.max(row.cellCount, 12); col += 1) {
-      headers.push(cellText(row.getCell(col)));
     }
-
-    const indexes = mapHeaders(headers);
-    if (indexes.tcId >= 0) return { headerRowNumber: rowNumber, headers, indexes };
   }
-  return null;
-}
-
-function cellText(cell) {
-  if (!cell) return '';
-  if (cell.text) return String(cell.text).trim();
-
-  const value = cell.value;
-  if (value === null || value === undefined) return '';
-  if (typeof value === 'object') {
-    if (Array.isArray(value.richText)) return value.richText.map((part) => part.text || '').join('').trim();
-    if (value.text) return String(value.text).trim();
-    if (value.result !== undefined) return String(value.result).trim();
-    if (value.hyperlink && value.text) return String(value.text).trim();
-  }
-  return String(value).trim();
-}
-
-function normalizeHeaderName(text) {
-  return String(text || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\u0111/g, 'd')
-    .replace(/\u0110/g, 'D')
-    .replace(/[^A-Za-z0-9]+/g, ' ')
-    .trim()
-    .toLowerCase();
-}
-
-function mapHeaders(headers) {
-  const normalized = headers.map(normalizeHeaderName);
-  return {
-    tcId: findHeader(normalized, ['tc id', 'id']),
-    title: findHeader(normalized, ['truong hop kiem thu', 'test case', 'scenario', 'test title']),
-  };
-}
-
-function findHeader(normalizedHeaders, candidates) {
-  return normalizedHeaders.findIndex((header) => candidates.some((candidate) => header === candidate || header.includes(candidate)));
+  return Array.from(byTcId.values());
 }
 
 function validateForCleanup() {

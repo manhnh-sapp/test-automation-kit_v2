@@ -11,6 +11,7 @@ try {
   console.error('Missing dependency: exceljs. Run `npm install` at the repo root.');
   process.exit(1);
 }
+const testcaseModel = require('../../lib/testcase'); // #1: parseXlsx canonical (thay read xlsx tự chế)
 
 const {
   getProjectOutputDir,
@@ -378,33 +379,27 @@ async function readTestcasesFromExcelFiles(excelFiles) {
     const sheet = findTestcaseSheet(workbook);
     if (!sheet) continue;
 
-    const headerInfo = findHeaderRow(sheet);
-    if (!headerInfo) continue;
+    if (!findHeaderRow(sheet)) continue;
 
-    const { headerRowNumber, headers, indexes } = headerInfo;
-    sheet.eachRow((row, rowNumber) => {
-      if (rowNumber <= headerRowNumber) return;
-      const cells = headers.map((_, index) => cellText(row.getCell(index + 1)));
-      const tcId = cells[indexes.tcId] || '';
-      if (!tcId.trim()) return;
-
+    // #1: parse testcase qua canonical parseXlsx (đã parity EXACT với read tự chế trên 27 xlsx).
+    const doc = await testcaseModel.parseXlsx(excelFile);
+    for (const t of doc.tests) {
       const testcase = {
-        tcId: tcId.trim(),
-        functionGroup: indexes.functionGroup >= 0 ? (cells[indexes.functionGroup] || '') : '',
-        module: cells[indexes.module] || '',
-        title: cells[indexes.title] || '',
-        precondition: cells[indexes.precondition] || '',
-        testData: cells[indexes.testData] || '',
-        steps: cells[indexes.steps] || '',
-        expected: cells[indexes.expected] || '',
-        priority: cells[indexes.priority] || '',
-        risk: cells[indexes.risk] || '',
+        tcId: t.tcId,
+        functionGroup: t.group,
+        module: t.module,
+        title: t.title,
+        precondition: t.precondition,
+        testData: t.data,
+        steps: t.stepsRaw,
+        expected: t.expectedRaw,
+        priority: t.priority,
+        risk: t.risk,
         sourceExcel: excelFile,
         sourceSheet: sheet.name,
       };
-
       if (!byTcId.has(testcase.tcId)) byTcId.set(testcase.tcId, testcase);
-    });
+    }
 
     if (XRAY_SUBFOLDER_BY_SHEET) tagFunctionSheets(workbook, sheet.name, byTcId);
   }

@@ -83,7 +83,7 @@ async function parseXlsx(filePath, opts = {}) {
     break;
   }
 
-  return { source: 'xlsx', tests, setup, headers, groups: [...groups], warnings };
+  return { source: 'xlsx', tests, setup, headers, groups: [...groups], warnings, sheetName: tcSheet ? tcSheet.name : '' };
 }
 
 module.exports = { parseXlsx, cellText };
