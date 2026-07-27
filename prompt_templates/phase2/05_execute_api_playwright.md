@@ -25,7 +25,8 @@ Thực thi BE API testcases bằng Playwright request context, không mở brows
 # Đầu vào
 - Swagger URL: [SWAGGER_URL_OR_ENV_KEY]
 - Base URL: [BASE_URL_OR_ENV_KEY]
-- Auth: lấy động từ API login hoặc env, không hardcode token
+- Auth: lấy động từ API login hoặc env, không hardcode token.
+  - **App KHÔNG có login API sạch (SPA tự refresh token, vd OPS)**: dùng **Token Broker** (`tests/fe/support/auth/tokenBroker.ts`) — giữ 1 phiên SPA đã login sống (`ensureOpsAuth`/`loginOps`) rồi gọi `brokerRequest(page, method, url, {data})`; token lấy TƯƠI từ request thật của SPA, 401/403 tự reload→refresh→retry. **KHÔNG dán `OPS_API_TOKEN` thủ công / KHÔNG F12 lại giữa chừng** — chỉ cần user/password trong `task.env`, execute không đứt dù token 30' hết.
 - Project Context: `.agent/config/project_context.md`
 - Env Template: `.env.example`
 - Project Output: `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/`

@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { haveOpsCreds } from '../support/opsLogin';
+import { haveOpsCreds, OPS_BASE } from '../support/opsLogin';
 import { ensureOpsAuth } from '../support/auth/opsAuth';
+import { readOpsToken, brokerRequest } from '../support/auth/tokenBroker';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { EvidenceRecorder } = require('../../../scripts/utils/evidence_recorder');
@@ -33,6 +34,18 @@ test.describe('@smoke Auth reuse + Evidence highlight (infra)', () => {
     expect(st, 'step capture PASSED').toBe('PASSED');
     await c.finish('PASSED');
     rec.write();
+
+    // Token Broker: đọc token TƯƠI từ phiên SPA sống + gọi API thật (né token 30' phải F12 lại).
+    const tok = await readOpsToken(p1);
+    expect(tok, 'readOpsToken lấy được Bearer JWT từ phiên SPA').toMatch(/^Bearer eyJ/);
+    let apiUrl: string | null = null;
+    p1.on('request', (r) => { if (!apiUrl && r.method() === 'GET' && /\/api\//.test(r.url())) apiUrl = r.url(); });
+    await p1.goto(`${OPS_BASE}/operations/sales/transactions`, { waitUntil: 'networkidle', timeout: 40000 }).catch(() => {});
+    if (apiUrl) {
+      const res = await brokerRequest(p1, 'get', apiUrl);
+      expect(res.status(), 'brokerRequest dùng token tươi → 2xx').toBeGreaterThanOrEqual(200);
+      expect(res.status()).toBeLessThan(300);
+    }
     await ctx1.close();
 
     // RUN 2: cache tươi → REUSE (seed cookies+localStorage), KHÔNG login UI.
