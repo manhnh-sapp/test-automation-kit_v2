@@ -34,6 +34,9 @@ Input:
 - Test Cases: nguồn canonical local theo `TESTCASE_SOURCE` — **mặc định `xray`** (`<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/test-cases/from-xray/*.xlsx`, kéo từ Xray ở Bước 0), hoặc `excel` (`[PATH_TO_TESTCASE_XLSX]` / `test-cases/*.xlsx`). Execute đọc file local — không gọi Jira/Xray từng case.
 - URL: [URL staging]
 - Credentials: lấy từ env variables, không hardcode credential.
+  - **Login helper dùng chung**: OPS → `ensureOpsAuth`/`loginOps` (`tests/fe/support/`); LMS (Keycloak) → `loginLms` (`tests/fe/support/lmsLogin.ts`). Login ĐÚNG 1 LẦN/worker (throttle/lockout theo số lần) rồi cache/reuse.
+  - **LMS chạy headless cần** `--disable-blink-features=AutomationControlled` (đã set ở `playwright.config.js`) — thiếu thì LMS SPA phát hiện automation → loop trang login trắng, form KHÔNG render.
+  - **Token 30' không làm gián đoạn**: giữ `page` đã login SỐNG + dùng **Token Broker** (`tests/fe/support/auth/tokenBroker.ts`: `readSpaToken`/`brokerRequest`) khi cần gọi API bằng token tươi — KHÔNG dán token thủ công, chỉ user/pass trong `task.env`.
 - Project Context: `.agent/config/project_context.md`
 - Env Template: `.env.example`
 - Project Output: `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/`

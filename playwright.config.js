@@ -28,6 +28,9 @@ module.exports = defineConfig({
     screenshot: 'only-on-failure',
     video: process.env.PW_VIDEO || 'off',
     trace: process.env.PW_TRACE || 'off',
+    // Tắt cờ automation của Chromium: một số SPA (vd LMS/Keycloak) phát hiện automation → chặn OIDC
+    // redirect / loop trang login trắng. Vô hại với app khác. Xem tests/fe/support/lmsLogin.ts.
+    launchOptions: { args: ['--disable-blink-features=AutomationControlled'] },
   },
   // Desktop chạy toàn bộ tests/ trừ tests/mobile-web; mobile-web chạy trên thiết bị thật (touch/UA/isMobile).
   // Không để project mobile phủ toàn bộ suite (tránh nhân 3 lần). Task-scoped scripts (automation/*.js)

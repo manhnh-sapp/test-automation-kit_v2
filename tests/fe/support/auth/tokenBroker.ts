@@ -4,8 +4,10 @@ const { pickToken } = require('../../../../scripts/utils/auth/pick_token');
 
 /*
  * Token Broker (giải quyết bearer token TTL 30' làm gián đoạn execute — phải F12 dán lại).
- * OPS là SPA TỰ refresh actToken (dùng cả ngày không login lại). Broker GIỮ 1 phiên login SỐNG rồi lấy
- * token TƯƠI mỗi lần cần → KHÔNG cần dán OPS_API_TOKEN, execute không đứt dù token 30' hết giữa chừng.
+ * Dùng cho **MỌI SPA gửi `Authorization: Bearer <jwt>`** — cả OPS (token ở localStorage, SPA tự rotate) LẪN
+ * LMS (Keycloak, token KHÔNG ở localStorage) — vì broker CAPTURE header thật SPA gửi, không phụ thuộc token lưu ở đâu.
+ * Broker GIỮ 1 phiên login SỐNG rồi lấy token TƯƠI mỗi lần cần → KHÔNG cần dán OPS_API_TOKEN/LMS_API_TOKEN,
+ * execute không đứt dù token 30' hết giữa chừng.
  *
  * Lấy token theo 2 tầng (ưu tiên tầng 1 vì đó CHÍNH XÁC token SPA đang dùng):
  *   1) CAPTURE: nghe request của SPA, bắt header `Authorization: Bearer ...` mới nhất (đúng token thật,
@@ -69,22 +71,28 @@ export async function refreshOpsToken(page: Page, base?: string): Promise<string
 }
 
 /**
- * Gọi API bằng token tươi từ phiên SPA sống; 401/403 → refresh (SPA tự làm mới) → retry 1 lần.
- * → execute KHÔNG gián đoạn dù token 30' hết giữa chừng, KHÔNG cần dán OPS_API_TOKEN.
+ * Gọi API bằng token tươi từ phiên SPA sống; 401/403 → reload refresh → retry; vẫn 401 + có `reauth` → login lại → retry.
+ * → execute KHÔNG gián đoạn dù token 30' hết giữa chừng, KHÔNG cần dán token thủ công.
+ *   opts.reauth: hàm login lại (vd loginLms/loginOps) — dùng khi phiên SSO chết hẳn (reload không đủ, hiếm trong 1 buổi).
  */
 export async function brokerRequest(
   page: Page,
   method: 'get' | 'post' | 'put' | 'delete',
   url: string,
-  opts: { data?: unknown; headers?: Record<string, string>; base?: string } = {},
+  opts: { data?: unknown; headers?: Record<string, string>; base?: string; reauth?: (p: Page) => Promise<void> } = {},
 ): Promise<APIResponse> {
   const call = (a: string | null): Promise<APIResponse> => page.request[method](url, {
     headers: { ...(a ? { Authorization: a } : {}), Accept: 'application/json', ...(opts.headers || {}) },
     ...(opts.data !== undefined ? { data: opts.data } : {}),
   });
+  const denied = (s: number): boolean => s === 401 || s === 403;
   let res = await call(await readOpsToken(page));
-  if (res.status() === 401 || res.status() === 403) {
-    res = await call(await refreshOpsToken(page, opts.base));
-  }
+  if (denied(res.status())) res = await call(await refreshOpsToken(page, opts.base));
+  if (denied(res.status()) && opts.reauth) { await opts.reauth(page); res = await call(await readOpsToken(page)); }
   return res;
 }
+
+// Alias app-neutral: broker chạy cho MỌI SPA dùng Bearer (OPS lẫn LMS). Dùng tên này khi không riêng OPS.
+export const readSpaToken = readOpsToken;
+export const refreshSpaToken = refreshOpsToken;
+export const spaRequest = brokerRequest;

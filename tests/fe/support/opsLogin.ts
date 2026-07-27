@@ -8,7 +8,9 @@ import { expect, type Page } from '@playwright/test';
 export const OPS_BASE = (process.env.OPS_BASE_URL || '').replace(/\/$/, '');
 export const OPS_USER = process.env.OPS_USERNAME || '';
 export const OPS_PASS = process.env.OPS_PASSWORD || '';
-export const haveOpsCreds = Boolean(OPS_BASE && OPS_USER && OPS_PASS);
+// Coi placeholder chưa điền (`<OPS_USERNAME>`) là CHƯA có creds → skip, tránh submit rác gây lockout oan.
+const isReal = (v: string): boolean => Boolean(v) && !/^<.*>$/.test(v.trim());
+export const haveOpsCreds = Boolean(OPS_BASE && isReal(OPS_USER) && isReal(OPS_PASS));
 
 /** "9.500.000" / "9,500,000" / "9500000" → 9500000 (null nếu không có số). */
 export function toNumber(raw: string | null | undefined): number | null {
