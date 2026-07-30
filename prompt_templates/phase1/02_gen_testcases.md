@@ -10,6 +10,16 @@ Phân tích requirement và sinh bộ test cases đầy đủ, chi tiết theo t
 Test cases phải đủ chi tiết để automation script thực thi chính xác mà không cần đoán thêm bất kỳ thông tin nào.
 Mục tiêu là coverage cao nhất có thể trong scope đã cung cấp, bao gồm happy path, negative, boundary, edge, permission, error state, data sync và regression-sensitive flows.
 
+# Bước 0 — BẮT BUỘC trước khi gen: đọc kỹ + chốt hỏi-đáp làm rõ
+
+> **Gate cứng. TUYỆT ĐỐI KHÔNG viết testcase nào trước khi hoàn tất bước này.** Canonical: `RULE_GLOBAL.md` §"Analysis & Ambiguity Gate"; workflow: `.agent/workflows/phase1_01_prepare_context.md`.
+
+1. **Đọc tài liệu THẬT KỸ, KHÔNG qua loa** — toàn bộ phần **trong scope** của requirement/BRD/Figma/Swagger/Jira: mọi mục, **bảng, ghi chú, footnote, comment, phụ lục** liên quan (phần ngoài scope thì lướt — không mâu thuẫn với mục "Tiết kiệm token" bên dưới). Bóc hết acceptance criteria, business rule, validation, enum/giá trị, state & transition, edge, xử lý lỗi, phân quyền, biên. **Đối chiếu chéo** các nguồn; mâu thuẫn thì nêu ra, không tự chọn bừa. Phân biệt "tài liệu ghi thật" vs "tôi suy luận".
+2. **Gom MỌI điểm mờ/phân vân thành MỘT danh sách câu hỏi** `Q1, Q2…` ghi `<TASK_OUTPUT_DIR>/reports/phase1-clarifications.md` — mỗi câu bám **spec cụ thể** (giá trị/URL/element/điều kiện/enum/oracle), kèm **assumption mặc định đề xuất** + **scope bị chặn** nếu chưa trả lời. Phân loại **Blocking** (Critical/High) vs **Non-blocking** (Medium/Low, có default). Ghi cả hai loại để QA thấy hết điểm mờ.
+3. Còn câu **Blocking** → ghi `AMBIGUITY_GATE: PENDING` vào `task.md`, **DỪNG** chờ QA/BA trả lời (hoặc tick chấp nhận assumption). **KHÔNG tự đoán qua Blocking rồi gen.**
+4. Mọi Blocking đã RESOLVED → **phân tích lại + chỉnh** coverage map/scope theo câu trả lời → đặt `AMBIGUITY_GATE: RESOLVED` → mới bắt đầu gen. Câu Blocking không được trả lời → phần scope đó ghi "chờ làm rõ" ở Coverage Gaps, **KHÔNG gen** case cho nó.
+5. Medium/Low không chặn: tự áp assumption (ghi rõ) + Coverage Gaps, vẫn gen.
+
 # Ngữ cảnh
 - Dự án: [TÊN DỰ ÁN] (App 1 / App)
 - Module: [TÊN MODULE]
@@ -705,8 +715,8 @@ Sau khi lưu file Markdown testcase:
 4. **Các bước đủ chi tiết** để automation thực thi không cần hỏi thêm
 5. **Bao phủ đủ 4 loại**: Positive, Negative, Boundary, Edge
 6. Output bằng **Tiếng Việt** (trừ technical terms)
-7. Nếu requirement chưa rõ → **đặt câu hỏi** trước khi sinh TC, không tự suy diễn
-8. Nếu vẫn phải tiếp tục vì đã có đủ context tương đối → ghi rõ assumption và coverage gap trong summary
+7. **Điểm mờ Blocking (Critical/High) → PHẢI qua Gate làm rõ (Bước 0) TRƯỚC khi gen**: gom câu hỏi vào `reports/phase1-clarifications.md`, đặt `AMBIGUITY_GATE: PENDING`, DỪNG chờ trả lời; **KHÔNG tự suy diễn, KHÔNG gen** phần bị chặn. RESOLVED xong mới phân tích lại rồi gen
+8. Chỉ điểm mờ **Medium/Low** mới được tự áp assumption (ghi rõ assumption + Coverage Gap) rồi tiếp tục; **KHÔNG** áp cho Critical/High (những thứ đó phải chờ trả lời)
 9. Không tạo testcase quá ngắn để tăng số lượng. Chất lượng chi tiết và khả năng execute ở Phase 2 quan trọng hơn số lượng thuần túy
 10. Không được để trống endpoint/method/status ở API testcase
 10b. **Oracle hiển thị phải từ tài liệu**: expected cho tên cột/label/format/thứ tự/empty-state trích verbatim từ FS/Figma, KHÔNG suy từ build (chống tautological). Mỗi màn có bảng/field phải có dimension Conformance (mục 12): tên cột exact, format từng field, số cột + thứ tự, field bắt buộc

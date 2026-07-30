@@ -8,6 +8,8 @@ Bạn là QA Engineer thiết lập AI Core Engine để phân tích tài liệu
 # Nhiệm vụ
 Kết nối nguồn tài liệu, tiếp nhận requirement và chuẩn bị context cho việc sinh testcases.
 
+> **ĐỌC THẬT KỸ, KHÔNG QUA LOA.** Mọi tài liệu phải đọc TOÀN BỘ (mọi mục, bảng, ghi chú, footnote, comment, phụ lục), bóc hết acceptance criteria / business rule / validation / enum / state & transition / edge / xử lý lỗi / phân quyền / biên; đối chiếu chéo các nguồn và **nêu mâu thuẫn**. Đọc lướt → phân tích lệch → câu hỏi làm rõ sai/thiếu → testcase kém. (Canonical: `RULE_GLOBAL.md` §"Analysis & Ambiguity Gate".)
+
 # Đầu vào
 - Project: [YOUR_PROJECT_NAME]
 - Task key/scope folder: [TASK_KEY]
@@ -27,6 +29,7 @@ Kết nối nguồn tài liệu, tiếp nhận requirement và chuẩn bị cont
 8. Lưu context vào `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/test-cases/snapshot_context.json`.
 
 # Checklist kiểm tra
+- [ ] Đã đọc **toàn bộ** tài liệu (không lướt); bóc đủ AC/rule/validation/enum/state/edge/phân quyền/biên; mâu thuẫn giữa các nguồn đã ghi ra.
 - [ ] Tài liệu đủ để sinh testcase.
 - [ ] Domain tag đúng: App 1 / App 2 / Cross-app.
 - [ ] Requirement, UI và API context đã được liên kết rõ.

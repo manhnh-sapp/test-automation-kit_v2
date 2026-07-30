@@ -137,6 +137,12 @@ Tài liệu này định nghĩa các rule chung áp dụng cho mọi workflow, p
 - Khi promote, file core phải namespace theo `TASK_KEY` và không làm mất task-scoped artifact gốc.
 - Nếu chưa approve promote, giữ automation trong `<TASK_OUTPUT_DIR>/automation/` và report là task-scoped only.
 
+### Analysis & Ambiguity Gate (Phase 1 — đọc kỹ, hỏi trước khi gen)
+
+1. **Đọc tài liệu THẬT KỸ, KHÔNG qua loa.** Mọi tài liệu được cấp (BRD/spec/requirement, Jira, Confluence, Figma, Swagger, doc) phải đọc kỹ TOÀN BỘ phần **trong scope** — mọi mục, **bảng, ghi chú, footnote, comment, phụ lục** liên quan — không lướt tiêu đề rồi đoán (phần ngoài scope được lướt để tiết kiệm token; nhưng trong scope thì không được qua loa). Bóc hết: acceptance criteria, business rule, validation, enum/giá trị, state & transition, edge case, xử lý lỗi, phân quyền/role, biên. **Đối chiếu chéo** các nguồn (Jira ↔ BRD ↔ Figma ↔ Swagger); mâu thuẫn thì **NÊU RA**, không tự chọn bừa. Phân biệt rõ "tài liệu ghi thật" vs "agent suy luận" — phần suy luận/mờ chính là nguyên liệu cho câu hỏi làm rõ.
+2. **Chốt hỏi-đáp làm rõ TRƯỚC khi gen testcase (gate cứng).** Sau phân tích, TRƯỚC khi sinh bất kỳ testcase nào: gom **MỌI** điểm mờ/phân vân thành **MỘT** danh sách câu hỏi đánh số (`Q1, Q2…`) trong `<TASK_OUTPUT_DIR>/reports/phase1-clarifications.md`; mỗi câu bám **spec cụ thể** (giá trị/URL/element/điều kiện/enum/oracle) + **assumption mặc định đề xuất** + **phần scope bị chặn** nếu chưa trả lời. Phân loại **Blocking** (Critical/High: acceptance mơ hồ, giá trị/enum/oracle thiếu, rule validation, biên/state chưa định nghĩa, phạm vi in/out) vs **Non-blocking** (Medium/Low: có default hợp lý). Ghi cả hai loại để QA thấy hết điểm mờ.
+3. **Blocking chưa trả lời → KHÔNG gen phần đó.** Ghi `AMBIGUITY_GATE: PENDING` vào `task.md` và **DỪNG**, chờ QA/BA trả lời (hoặc tick chấp nhận assumption). TUYỆT ĐỐI không tự đoán qua điểm Blocking rồi gen. Chỉ khi mọi câu Blocking đã RESOLVED → **phân tích lại + chỉnh** coverage map/scope theo câu trả lời → đặt `AMBIGUITY_GATE: RESOLVED` → mới bắt đầu gen. Câu Blocking không được trả lời → phần scope đó ghi "chờ làm rõ" ở Coverage Gaps, KHÔNG gen case cho nó. Medium/Low không chặn: tự áp assumption (ghi rõ) + Coverage Gaps, vẫn gen.
+
 ### Execution Discipline (Kỷ luật thực thi — chạy thông suốt)
 
 Áp dụng khi execute (Phase 2, Re-run, Partial Rerun). Mục tiêu: **tối đa coverage mỗi lượt, tối thiểu gián đoạn**. Vi phạm = execute lắt nhắt, đứt đoạn, phải làm lại.

@@ -75,7 +75,7 @@ Output:
   `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/`
 
 Phase 1 tasks:
-1. Fetch/read Jira, Confluence, Figma, Swagger/OpenAPI và file local nếu được cung cấp; chỉ đọc sâu phần liên quan tới scope, còn raw content lưu local.
+1. Fetch/read Jira, Confluence, Figma, Swagger/OpenAPI và file local nếu được cung cấp. **Đọc THẬT KỸ, KHÔNG qua loa** phần trong scope — mọi mục/bảng/ghi chú/footnote/comment liên quan; bóc đủ AC/rule/validation/enum/state/edge/phân quyền/biên; đối chiếu chéo nguồn và nêu mâu thuẫn (raw content lưu local, không dán vào prompt; phần ngoài scope thì lướt). Canonical: `RULE_GLOBAL.md` §"Analysis & Ambiguity Gate".
 1b. **Ambiguity Gate (gate cứng):** sau khi đọc nguồn, rà mâu thuẫn/thiếu rule bắt buộc/expected không rõ. Nếu có điểm mơ hồ Critical/High → xuất Q&A đánh số + assumption mặc định ra `reports/phase1-clarifications.md`, ghi `AMBIGUITY_GATE: PENDING` vào `task.md` và DỪNG chờ QA/BA. KHÔNG sinh testcase khi gate PENDING. Chi tiết: `.agent/workflows/phase1_01_prepare_context.md` bước 7.
 2. Phân tích requirement, UI design, API docs và context dự án.
 2b. **UI Conformance Catalog (BẮT BUỘC nếu scope có màn UI)**: với mỗi màn/bảng/danh sách/field trong scope, trích **NGUYÊN VĂN từ FS/Figma** ra `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/requirements/ui_catalog.md` — mỗi phần tử → (tên cột/label chính xác, format dữ liệu, số cột + thứ tự, field bắt buộc, empty-state/placeholder/label nút/tiêu đề, token style nếu có Figma). Đây là **nguồn-sự-thật cho expected của mọi case hiển thị** ở cả Phase 1 (sinh case) lẫn Phase 2 (assert). CẤM lấy expected hiển thị từ build đang chạy (chống oracle tautological). Chi tiết ở mục 12 trong `prompt_templates/phase1/02_gen_testcases.md`.
