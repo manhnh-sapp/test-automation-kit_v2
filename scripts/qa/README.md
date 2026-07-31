@@ -71,6 +71,25 @@ TASK_ENV=profiles/<TASK>/task.env node scripts/qa/perf_check.js --catalog <.../p
 # out: <task>/reports/perf-report.md + perf-report.json
 ```
 
+## `--deep` — tín hiệu sâu qua CDP thô (không thêm dependency)
+
+Chạy **RUN RIÊNG** sau các run đo thời gian (coverage/profiler gây overhead → không được trộn vào median).
+
+```bash
+node scripts/qa/perf_check.js --url <trang> --no-login --deep [--cpu-throttle 4] [--net-throttle slow3g|fast3g|offline] [--heap-snapshot]
+```
+
+| Tín hiệu | Nguồn | Đọc thế nào |
+|---|---|---|
+| **Coverage động JS/CSS** | `page.coverage` | `usedPct` = % code FE luồng test **chạm tới**; `unusedPct` = dead weight tải về không chạy → ứng viên code-split/lazy-load. Kèm top file thừa nhiều nhất. |
+| ScriptDuration / TaskDuration | CDP `Performance.getMetrics` | cao → main-thread nghẽn (long task) |
+| LayoutDuration + LayoutCount / RecalcStyle* | CDP | cùng cao → layout thrash |
+| JSHeapUsed/Total, Nodes, JSEventListeners | CDP + `Memory.getDOMCounters` | theo dõi leak / DOM phình / listener rò |
+| Heap snapshot (`--heap-snapshot`) | CDP `HeapProfiler` | ghi `heap-<screen>.heapsnapshot` (NẶNG) — mở Chrome DevTools → Memory → Load |
+| CPU / Network throttling | CDP `Emulation.setCPUThrottlingRate`, `Network.emulateNetworkConditions` | là **điều kiện đo** → ghi vào header report |
+
+Lưu ý: coverage JS tính `unused` bằng **merge range `count===0`** (range bọc script luôn `count>0` → cộng range chạy sẽ ra "0% thừa" sai). Tín hiệu deep là **advisory**, không có ngưỡng cứng.
+
 ## Catalog block `perf`
 ```jsonc
 {

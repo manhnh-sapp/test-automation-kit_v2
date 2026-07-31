@@ -22,8 +22,20 @@ so ngưỡng khai trong catalog → PASS/WARN/FAIL. Tái dùng khuôn `accessibi
 ```
 TASK_ENV=profiles/<TASK>/task.env node scripts/qa/perf_check.js --catalog <.../perf_catalog.json> [--runs 3]
 node scripts/qa/perf_check.js --url <http|file> --no-login   # smoke 1 trang
+node scripts/qa/perf_check.js --url <...> --no-login --deep [--cpu-throttle 4] [--net-throttle slow3g] [--heap-snapshot]
 ```
 Catalog: block `perf` (screens + thresholds, api + threshold_ms). Schema ở `scripts/qa/README.md`.
+
+## `--deep` — tín hiệu sâu qua CDP thô (built-in, không thêm dep)
+
+Chạy **run RIÊNG** sau các run đo thời gian (coverage/profiler gây overhead → KHÔNG trộn vào median):
+
+- **Coverage động JS/CSS** (`page.coverage`): `usedPct` = % code FE luồng test **chạm tới** (đo độ phủ FE thật của test); `unusedPct` = dead weight tải về không chạy → ứng viên **code-split/lazy-load**; kèm top file thừa.
+- **`Performance.getMetrics`**: ScriptDuration/TaskDuration (main-thread nghẽn), LayoutDuration + LayoutCount & RecalcStyle* (layout thrash), JSHeapUsed/Total, Nodes, JSEventListeners (leak/DOM phình).
+- **`Memory.getDOMCounters`**; `--heap-snapshot` → file `.heapsnapshot` (NẶNG, chỉ khi điều tra leak; mở DevTools → Memory → Load).
+- **Emulation**: `--cpu-throttle <rate>`, `--net-throttle slow3g|fast3g|offline` — là **điều kiện đo**, ghi vào header report.
+
+⚠️ Coverage JS phải tính `unused` bằng **merge range `count===0`**: V8 trả range bọc cả script với `count>0`, cộng range-chạy sẽ ra "0% thừa" (sai). Tín hiệu deep là **advisory**, không ngưỡng cứng.
 
 ## Outputs
 
