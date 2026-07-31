@@ -39,7 +39,7 @@ Catalog: block `perf` (screens + thresholds, api + threshold_ms). Schema ở `sc
 
 ## Constraints
 
-- Không thêm dependency nặng: Lighthouse (điểm số) và k6/JMeter (load nhiều VU) là **opt-in/Manual-only**, KHÔNG ở script này.
+- Không thêm dependency nặng vào script perf này: điểm **Lighthouse** → script riêng opt-in [[lighthouse_check]] (`scripts/qa/lighthouse_check.js`, qua CDP); **load nhiều VU** → [[load_check]] (k6). Cả hai skip sạch nếu chưa cài dep.
 - Không tự log product bug từ perf; FAIL là tín hiệu điều tra.
 
 ## Anti-Patterns
@@ -51,6 +51,7 @@ Catalog: block `perf` (screens + thresholds, api + threshold_ms). Schema ở `sc
 ## Related
 
 - `scripts/qa/accessibility_check.js` — cùng khuôn (login/catalog/report).
+- [[lighthouse_check]] — điểm Lighthouse (Perf/A11y/SEO/Best-practices) qua CDP, opt-in nặng, bổ sung vitals thô ở đây.
 - [[security_check]] — cặp non-functional executable.
 - mục 16 `prompt_templates/phase1/02_gen_testcases.md`; large-dataset bắc cầu mục 7.
 - [[learning_recorder]] — có thể ghi perf finding lặp lại theo module (chỉ khi đã confirm).

@@ -499,7 +499,7 @@ Ràng buộc thể hiện ở UI luôn phải có TC bypass thẳng BE (đồng 
 
 Kit thiên functional; nhóm này CHỈ sinh khi có ngưỡng/tải trong scope hoặc rủi ro cao, và **ghi rõ ngưỡng lấy từ đâu** (SLA/NFR/spec). Không có ngưỡng → `N/A + lý do`, KHÔNG bịa số.
 
-> **Executable ở Phase 2:** phần deterministic (web vitals, API response time so SLA, large-dataset render, resource weight) chạy thật bằng `scripts/qa/perf_check.js` (skill `perf_check`, threshold-gated, median N lần) — ngưỡng khai trong catalog `perf`. Verdict là **advisory** (UAT nhiễu), không tự thành product bug.
+> **Executable ở Phase 2:** phần deterministic (web vitals, API response time so SLA, large-dataset render, resource weight) chạy thật bằng `scripts/qa/perf_check.js` (skill `perf_check`, threshold-gated, median N lần) — ngưỡng khai trong catalog `perf`. Verdict là **advisory** (UAT nhiễu), không tự thành product bug. **Điểm Lighthouse** (Performance/Accessibility/SEO/Best-practices) chạy qua CDP bằng `scripts/qa/lighthouse_check.js` (skill `lighthouse_check`, **opt-in nặng** — cần `npm i -D playwright-lighthouse lighthouse`, `--confirm-nonprod`, verdict advisory theo dải điểm chuẩn); evidence là ảnh bảng điểm.
 
 - **Response time / SLA**: endpoint/màn quan trọng phản hồi trong ngưỡng NFR (vd list < 2s). TC đo thời gian thực tế so ngưỡng đã nêu.
 - **Large dataset**: list/table/export với ≥100 (hoặc ngưỡng spec) bản ghi — render/pagination/scroll không mất dòng, không timeout, không treo (bắc cầu mục 7).

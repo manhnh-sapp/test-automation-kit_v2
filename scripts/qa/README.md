@@ -89,6 +89,32 @@ Ngưỡng lấy từ NFR/SLA/spec; thiếu ngưỡng cho metric nào → metric 
 
 ---
 
+# lighthouse_check.js — Điểm Lighthouse qua CDP (opt-in nặng)
+
+Điểm **Performance / Accessibility / SEO / Best-practices** thật bằng `playwright-lighthouse` (`playAudit`) qua CDP. **Opt-in**: thiếu dep `playwright-lighthouse`/`lighthouse` → BỎ QUA sạch (exit 0). never-auto + non-prod (`--confirm-nonprod`). Verdict **advisory** theo dải chuẩn Lighthouse (≥90/50–89/<50). Evidence = `lighthouse-scores.png`. Xem skill `.agent/skills/phase2/lighthouse_check`.
+
+```bash
+npm i -D playwright-lighthouse lighthouse   # cài opt-in một lần
+TASK_ENV=profiles/<TASK>/task.env node scripts/qa/lighthouse_check.js --catalog <.../lighthouse_catalog.json> --confirm-nonprod
+node scripts/qa/lighthouse_check.js --url https://uat-... --no-login --confirm-nonprod   # smoke 1 trang public
+# out: <task>/reports/lighthouse-report.md + .json + lighthouse-scores.png + lighthouse-<screen>.html/.json
+```
+
+## Catalog block `lighthouse`
+```jsonc
+{
+  "lighthouse": {
+    "login": { "baseUrlEnv": "OPS_BASE_URL", "loginPath": "/auth/login", "userEnv": "OPS_USERNAME", "passEnv": "OPS_PASSWORD" },
+    "formFactor": "desktop",                                  // desktop (mặc định) | mobile
+    "thresholds": { "performance": 50, "accessibility": 90, "seo": 90, "best-practices": 90 },  // điểm PASS per nhóm (0–100)
+    "screens": [{ "name": "OPS Class List", "url": "/classes", "thresholds": { "performance": 40 } }]  // override per màn
+  }
+}
+```
+Auth localStorage-token (vd OPS): Lighthouse điều hướng lại có thể mất localStorage → ưu tiên trang public hoặc app auth cookie/SSO. Không override → dùng dải điểm chuẩn Lighthouse (không bịa SLA).
+
+---
+
 # security_check.js — Security BASIC executable (mục 15, non-destructive)
 
 Kiểm headers/cookie, unauth, authz/IDOR (2 tài khoản test), exposure. **GET/read-only**, never-auto, cần `--confirm-nonprod`. Control → PASS/FAIL; exposure → finding (mask PII). Xem skill `.agent/skills/phase2/security_check` (ranh giới an toàn bắt buộc).
