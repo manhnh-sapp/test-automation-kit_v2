@@ -72,6 +72,48 @@ regression:
     paths: [blob-report/]
     expire_in: 1 week
 
+# ---- Cross-browser lane (MANUAL — Firefox/WebKit) ----
+# Vì `project` trong Playwright = NHÂN BẢN suite (không chia việc), cross-browser để LÀN RIÊNG thay vì
+# nhét vào lane regression → không nhân 3× lượt chạy/evidence/nhiễu flaky cho mọi run.
+# Lane này CHỈ thêm 2 engine phụ (--project=firefox|webkit); chromium do job `regression` lo.
+cross-browser:
+  stage: regression
+  image: mcr.microsoft.com/playwright:v1.60.0-noble   # đổi tag khớp @playwright/test trong package.json
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: manual
+      allow_failure: false
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+      allow_failure: false
+  variables:
+    PROJECT_OUTPUT_DIR: "outputs/ci"
+    TASK_KEY: "CI-CROSS-BROWSER"
+    RUN_ID: "xb-$CI_PIPELINE_ID"
+    ALLOW_EMPTY: "1"                          # bỏ khi lane đã có spec promoted (0-test thành ĐỎ)
+    CROSS_BROWSER: "1"                        # bật 2 project firefox-desktop + webkit-desktop
+    # CROSS_BROWSER_GREP: "@cross-browser"    # BẬT khi suite lớn: engine phụ chỉ chạy tập critical
+  script:
+    - npm ci --prefer-offline --no-audit --no-fund
+    # webkit đã cần cho iphone-13 ở lane regression; FIREFOX chỉ cài Ở ĐÂY (đừng thêm vào lane PR).
+    - npx playwright install firefox webkit
+    # F1 — chống false-green, đếm ĐÚNG SCOPE 2 engine phụ (kể cả khi CROSS_BROWSER_GREP lọc bớt).
+    - node scripts/qa/test_inventory_gate.js --out inventory-xb.json -- --project=firefox-desktop --project=webkit-desktop
+    - |
+      STATE=$(node -e "try{process.stdout.write(JSON.parse(require('fs').readFileSync('inventory-xb.json','utf8')).state)}catch(e){process.stdout.write('INFRA_FAILURE')}")
+      echo "cross-browser inventory = $STATE"
+      if [ "$STATE" = "HAS_TESTS" ]; then
+        npx playwright test --project=firefox-desktop --project=webkit-desktop --reporter=html
+      elif [ "$STATE" = "NO_TESTS" ]; then
+        echo "NO_TESTS_EXECUTED — lane cross-browser rong (chua promote spec hoac GREP khong khop). KHONG phai PASSED."
+      else
+        echo "INFRA_FAILURE - playwright/config loi"; exit 1
+      fi
+  artifacts:
+    when: always
+    paths: [playwright-report/, inventory-xb.json]
+    expire_in: 1 week
+
 merge-report:
   stage: report
   image: mcr.microsoft.com/playwright:v1.60.0-noble
