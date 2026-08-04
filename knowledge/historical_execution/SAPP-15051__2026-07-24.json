@@ -1,0 +1,44 @@
+{
+  "task_key": "SAPP-15051",
+  "date": "2026-07-24",
+  "phase": "phase2",
+  "unassisted_pass_rate": 1,
+  "modules": {
+    "Tạo Lesson": {
+      "total": 20,
+      "pass": 20,
+      "fail": 0,
+      "skip": 0
+    },
+    "Xem Lesson": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "Sửa Lesson": {
+      "total": 6,
+      "pass": 6,
+      "fail": 0,
+      "skip": 0
+    },
+    "Xóa Lesson": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "API": {
+      "total": 5,
+      "pass": 5,
+      "fail": 0,
+      "skip": 0
+    },
+    "Permission": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    }
+  }
+}

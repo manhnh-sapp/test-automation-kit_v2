@@ -1,0 +1,104 @@
+{
+  "task_key": "SAPP-24247",
+  "date": "2026-07-28",
+  "phase": "phase2",
+  "unassisted_pass_rate": 1,
+  "modules": {
+    "Học bài": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    },
+    "Giao diện tối ưu": {
+      "total": 7,
+      "pass": 7,
+      "fail": 0,
+      "skip": 0
+    },
+    "Xem kết quả": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "skip": 0
+    },
+    "Test": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    },
+    "Quiz": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    },
+    "Câu tự luận": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    },
+    "Hiệu năng": {
+      "total": 8,
+      "pass": 8,
+      "fail": 0,
+      "skip": 0
+    },
+    "Entrance test": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Câu Excel": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    },
+    "Resilience": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Case-study": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Event test": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Làm lại": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Chấm điểm": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Activity": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Điều hướng": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    }
+  }
+}

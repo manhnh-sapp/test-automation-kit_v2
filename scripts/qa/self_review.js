@@ -66,6 +66,32 @@ if (statusFile && fs.existsSync(statusFile)) {
   results.push(engine.toResult('execution output', { skipped: true, note: 'không thấy testcase-status.json', severity: engine.SEVERITY.P0 }));
 }
 
+// 4) Learning data (F10/F11) — chống "làm nhiều task mà knowledge/ vẫn trống".
+// Workflow phase2_04 Bước 9 yêu cầu ghi learning entry, nhưng vốn "Suggest-only" nên hay bị bỏ →
+// check ở đây: đã execute (có testcase-status.json) thì PHẢI có snapshot + KPI cho task này.
+{
+  const know = path.join(rc.REPO_ROOT, 'knowledge');
+  const executed = Boolean(statusFile && fs.existsSync(statusFile));
+  if (!executed || !TASK) {
+    results.push(engine.toResult('learning data (knowledge/)', { skipped: true, note: executed ? 'thiếu TASK_KEY' : 'chưa execute', severity: engine.SEVERITY.P1 }));
+  } else {
+    const problems = [];
+    const histDir = path.join(know, 'historical_execution');
+    const hasSnap = fs.existsSync(histDir) && fs.readdirSync(histDir).some((f) => f.startsWith(`${TASK}__`));
+    if (!hasSnap) problems.push(`Thiếu knowledge/historical_execution/${TASK}__<date>.json (snapshot pass/fail theo module — input cho risk_score + dashboard)`);
+    const runsFile = path.join(know, 'metrics', 'runs.jsonl');
+    let hasKpi = false;
+    if (fs.existsSync(runsFile)) {
+      hasKpi = fs.readFileSync(runsFile, 'utf8').split(/\r?\n/).filter(Boolean).some((line) => {
+        try { return String(JSON.parse(line).label || '').split('/')[0] === TASK; } catch (e) { return false; }
+      });
+    }
+    if (!hasKpi) problems.push(`Thiếu KPI cho ${TASK} trong knowledge/metrics/runs.jsonl (nguồn cho reliability/flaky)`);
+    if (problems.length) problems.push('→ Chạy: `TASK_ENV=profiles/<TASK>/task.env npm run learn` (idempotent, chạy lại không nhân đôi).');
+    results.push(engine.toResult('learning data (knowledge/)', { problems, note: problems.length ? 'learning loop ĐỨT — task chạy xong nhưng không học được gì' : 'đã tích luỹ snapshot + KPI', severity: engine.SEVERITY.P1 }));
+  }
+}
+
 // ---- Gộp + in qua GateEngine ----
 const agg = engine.aggregate(results);
 console.log(engine.format(agg, { title: `SELF-REVIEW (G9) — lượt 2 trước finalize${TASK ? ` · task ${TASK}` : ''}` }));

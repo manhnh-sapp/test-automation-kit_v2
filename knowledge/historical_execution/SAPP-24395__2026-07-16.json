@@ -1,0 +1,170 @@
+{
+  "task_key": "SAPP-24395",
+  "date": "2026-07-16",
+  "phase": "phase2",
+  "unassisted_pass_rate": 0.939,
+  "modules": {
+    "Tạo Add-on Order": {
+      "total": 54,
+      "pass": 45,
+      "fail": 3,
+      "skip": 6
+    },
+    "Đồng bộ HubSpot": {
+      "total": 20,
+      "pass": 20,
+      "fail": 0,
+      "skip": 0
+    },
+    "Đồng bộ Deal gốc": {
+      "total": 7,
+      "pass": 7,
+      "fail": 0,
+      "skip": 0
+    },
+    "Đồng bộ Order về HubSpot": {
+      "total": 9,
+      "pass": 7,
+      "fail": 0,
+      "skip": 2
+    },
+    "Checkout Thanh toán": {
+      "total": 20,
+      "pass": 15,
+      "fail": 0,
+      "skip": 5
+    },
+    "Check tiền & Ghi nhận doanh thu": {
+      "total": 23,
+      "pass": 8,
+      "fail": 0,
+      "skip": 15
+    },
+    "Quản lý Transaction": {
+      "total": 28,
+      "pass": 27,
+      "fail": 1,
+      "skip": 0
+    },
+    "Quản lý Product Version": {
+      "total": 27,
+      "pass": 27,
+      "fail": 0,
+      "skip": 0
+    },
+    "Permission Security": {
+      "total": 16,
+      "pass": 6,
+      "fail": 1,
+      "skip": 9
+    },
+    "Ghi nhận DT theo loại": {
+      "total": 7,
+      "pass": 2,
+      "fail": 2,
+      "skip": 3
+    },
+    "Công thức phí Service Fee": {
+      "total": 17,
+      "pass": 7,
+      "fail": 7,
+      "skip": 3
+    },
+    "Order Phí tư vấn": {
+      "total": 13,
+      "pass": 12,
+      "fail": 0,
+      "skip": 1
+    },
+    "UI": {
+      "total": 12,
+      "pass": 10,
+      "fail": 0,
+      "skip": 2
+    },
+    "Biểu phí bán tài khoản thi": {
+      "total": 6,
+      "pass": 4,
+      "fail": 1,
+      "skip": 1
+    },
+    "State Transition": {
+      "total": 13,
+      "pass": 9,
+      "fail": 4,
+      "skip": 0
+    },
+    "BE Data Conformance": {
+      "total": 5,
+      "pass": 5,
+      "fail": 0,
+      "skip": 0
+    },
+    "Order Gia hạn": {
+      "total": 14,
+      "pass": 14,
+      "fail": 0,
+      "skip": 0
+    },
+    "Order Bảo lưu": {
+      "total": 7,
+      "pass": 7,
+      "fail": 0,
+      "skip": 0
+    },
+    "Order Chuyển nhượng (chuyển)": {
+      "total": 15,
+      "pass": 15,
+      "fail": 0,
+      "skip": 0
+    },
+    "Order Chuyển nhượng (nhận)": {
+      "total": 13,
+      "pass": 13,
+      "fail": 0,
+      "skip": 0
+    },
+    "Order Chuyển đổi (giảm)": {
+      "total": 8,
+      "pass": 8,
+      "fail": 0,
+      "skip": 0
+    },
+    "Transaction Chuyển đổi": {
+      "total": 7,
+      "pass": 6,
+      "fail": 1,
+      "skip": 0
+    },
+    "Order Chuyển đổi (tăng)": {
+      "total": 17,
+      "pass": 17,
+      "fail": 0,
+      "skip": 0
+    },
+    "Transaction Phí tư vấn": {
+      "total": 10,
+      "pass": 10,
+      "fail": 0,
+      "skip": 0
+    },
+    "Quản lý Add-on Product": {
+      "total": 16,
+      "pass": 16,
+      "fail": 0,
+      "skip": 0
+    },
+    "Quản lý Add-on Product Version": {
+      "total": 6,
+      "pass": 5,
+      "fail": 1,
+      "skip": 0
+    },
+    "Quản lý Combo Version": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "skip": 0
+    }
+  }
+}

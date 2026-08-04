@@ -8,8 +8,10 @@
  *   - knowledge/metrics/tc-history.jsonl : 1 dòng/test/run {at,label,key,file,title,status,retries,flaky} (nguồn cho F10 reliability_index)
  * Append-only → số liệu KPI/độ tin cậy đầy dần. Nguồn cho dashboard (KPI + reliability).
  *
- * Dùng: node scripts/qa/metrics_collect.js --results <results.json> [--label "<nhãn run>"]
+ * Dùng: node scripts/qa/metrics_collect.js --results <results.json> [--label "<nhãn run>"] [--at <ISO>]
  *   Mặc định results = <TASK_OUTPUT_DIR>/test-results[/runs/<RUN_ID>]/results.json (nếu có TASK context).
+ *   `--at`: thời điểm run (ISO) — dùng khi BACKFILL từ results.json cũ để không ghi sai thành "hôm nay".
+ *   Append-only nên có DEDUP: cùng {label, at} đã có trong runs.jsonl thì bỏ qua (chạy lại không nhân đôi).
  */
 
 const fs = require('fs');
@@ -34,7 +36,9 @@ if (!rp || !fs.existsSync(rp)) { console.error(`[metrics] Không thấy results.
 let doc;
 try { doc = JSON.parse(fs.readFileSync(rp, 'utf8')); } catch (e) { console.error('[metrics] results.json parse lỗi:', e.message); process.exit(2); }
 
-const at = new Date().toISOString();
+// --at cho backfill: lấy đúng thời điểm run cũ (mặc định = bây giờ). Sai thời điểm → trend KPI vô nghĩa.
+const atArg = arg('at');
+const at = atArg ? new Date(atArg).toISOString() : new Date().toISOString();
 const label = arg('label') || process.env.RUN_ID || path.basename(path.dirname(rp));
 const st = doc.stats || {};
 // Semantics rõ (P2): passed_clean = pass ngay (expected) · passed_flaky = pass sau retry (flaky) ·
@@ -75,7 +79,19 @@ walk(doc.suites, '');
 const OUT = path.resolve(arg('out', path.join(rc.REPO_ROOT, 'knowledge', 'metrics')));
 fs.mkdirSync(OUT, { recursive: true });
 const runRec = { at, label, testsFound, passedClean, passedFlaky, eventualSuccess, failed, skipped, durationSec, cleanPassRate, eventualPassRate, passed, flaky, passRate };
-fs.appendFileSync(path.join(OUT, 'runs.jsonl'), JSON.stringify(runRec) + '\n', 'utf8');
+
+// DEDUP: append-only nên chạy lại (hoặc backfill lần 2) sẽ nhân đôi record → check {label,at} trước.
+const runsFile = path.join(OUT, 'runs.jsonl');
+if (fs.existsSync(runsFile)) {
+  const dup = fs.readFileSync(runsFile, 'utf8').split(/\r?\n/).filter(Boolean).some((line) => {
+    try { const r = JSON.parse(line); return r.label === label && r.at === at; } catch (e) { return false; }
+  });
+  if (dup) {
+    console.log(`[metrics] BỎ QUA (đã có record label="${label}" at=${at}) — không ghi trùng.`);
+    process.exit(0);
+  }
+}
+fs.appendFileSync(runsFile, JSON.stringify(runRec) + '\n', 'utf8');
 if (tcRecs.length) fs.appendFileSync(path.join(OUT, 'tc-history.jsonl'), tcRecs.map((r) => JSON.stringify(r)).join('\n') + '\n', 'utf8');
 
 console.log(`[metrics] run "${label}": ${testsFound} test · clean ${passedClean} · flaky ${passedFlaky} · fail ${failed} · skip ${skipped} · ${durationSec}s · cleanPassRate ${cleanPassRate ?? 'n/a'} · eventual ${eventualPassRate ?? 'n/a'}`);

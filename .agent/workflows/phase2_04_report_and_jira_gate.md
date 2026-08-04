@@ -44,7 +44,22 @@ Tạo report Phase 2 rõ ràng, không log bug sai do setup/prompt/test data, kh
    - Kết quả hiện tại.
    - Kết quả mong muốn.
 8. Evidence upload lên Jira chỉ là ảnh/video.
-9. Ghi Knowledge Entry (skill `learning_recorder`, Suggest-only) — **chỉ cho bug đã qua gate ở Bước 4**:
+9. **Thu learning data — BẮT BUỘC sau mọi lần execute** (không phải chỉ khi có bug). Chạy MỘT lệnh:
+
+   ```bash
+   TASK_ENV=profiles/<TASK_KEY>/task.env npm run learn
+   ```
+
+   `scripts/qa/learn_task.js` (idempotent — chạy lại KHÔNG nhân đôi) tự làm:
+   - `knowledge/metrics/{runs,tc-history}.jsonl` ← KPI/flaky từ `results.json` (nguồn cho `reliability_index`).
+   - `knowledge/historical_execution/<TASK_KEY>__<date>.json` ← snapshot pass/fail **theo module nghiệp vụ**
+     (map `tcId → Module` từ testcase canonical) — đây là input `risk_score.js` cộng fail/total để ra Likelihood,
+     và là nguồn coverage của `dashboard`. Thiếu bước này ⇒ risk model **mãi cold-start**, dashboard rỗng.
+   - `knowledge/index.json` ← entry `historical_execution`.
+
+   `self_review` CHẶN nếu đã execute mà thiếu snapshot/KPI của task (learning loop đứt).
+
+9b. Ghi Knowledge Entry (skill `learning_recorder`, Suggest-only) — **chỉ cho bug đã qua gate ở Bước 4**:
    - Với mỗi bug đã qua gate (đã loại flaky/setup/data/prompt), ghi `knowledge/bugs/<TASK_KEY>__<slug>.json`; nếu đã xác định root cause thì ghi/nối `knowledge/root_causes/<slug>.json` (link 2 chiều).
    - Ghi snapshot pass/fail theo module vào `knowledge/historical_execution/<TASK_KEY>__<date>.json` (lấy số liệu từ execution summary, gồm unassisted pass rate).
    - Cập nhật `knowledge/index.json`.

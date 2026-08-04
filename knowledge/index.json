@@ -1,5 +1,155 @@
 {
   "version": 1,
-  "updated_at": null,
-  "entries": []
+  "updated_at": "2026-08-04",
+  "entries": [
+    {
+      "type": "historical_execution",
+      "file": "historical_execution/SAPP-13964__2026-07-27.json",
+      "module": "Khai báo tiến độ",
+      "tags": [
+        "khai-báo-tiến-độ-(lms)",
+        "hiển-thị-(lms)",
+        "sửa-tiến-độ-(lms)",
+        "khai-báo-tiến-độ",
+        "hiển-thị",
+        "sửa-tiến-độ",
+        "cảnh-báo-tiến-độ",
+        "logic-tính-tiến-độ"
+      ],
+      "task_key": "SAPP-13964",
+      "status": "clean"
+    },
+    {
+      "type": "historical_execution",
+      "file": "historical_execution/SAPP-14443__2026-07-23.json",
+      "module": "Tạo",
+      "tags": [
+        "tạo",
+        "xem-chi-tiết",
+        "sửa",
+        "xóa",
+        "schedule-later-(dời-lịch)",
+        "e2e",
+        "api",
+        "permission"
+      ],
+      "task_key": "SAPP-14443",
+      "status": "clean"
+    },
+    {
+      "type": "historical_execution",
+      "file": "historical_execution/SAPP-15051__2026-07-24.json",
+      "module": "Tạo Lesson",
+      "tags": [
+        "tạo-lesson",
+        "xem-lesson",
+        "sửa-lesson",
+        "xóa-lesson",
+        "api",
+        "permission"
+      ],
+      "task_key": "SAPP-15051",
+      "status": "clean"
+    },
+    {
+      "type": "historical_execution",
+      "file": "historical_execution/SAPP-21786__2026-07-30.json",
+      "module": "Resync GV (Teacher)",
+      "tags": [
+        "đồng-bộ-tự-động",
+        "fr2-tính-công",
+        "fr1-gộp-ca",
+        "fr3-chấm-công-theo-lớp",
+        "fr4-chấm-công-theo-tháng",
+        "resync-gv-(teacher)",
+        "re-sync-theo-lớp",
+        "permission"
+      ],
+      "task_key": "SAPP-21786",
+      "status": "clean"
+    },
+    {
+      "type": "historical_execution",
+      "file": "historical_execution/SAPP-23439__2026-07-10.json",
+      "module": "Export chấm công",
+      "tags": [
+        "export-chấm-công",
+        "tạo-timeoff-request",
+        "check-trùng-phiếu",
+        "sửa-timeoff-request",
+        "hủy-timeoff-request",
+        "xem-danh-sách",
+        "duyệt-&-attendance-tracking",
+        "permission"
+      ],
+      "task_key": "SAPP-23439",
+      "status": "has-fail"
+    },
+    {
+      "type": "historical_execution",
+      "file": "historical_execution/SAPP-24247__2026-07-28.json",
+      "module": "Hiệu năng",
+      "tags": [
+        "học-bài",
+        "giao-diện-tối-ưu",
+        "xem-kết-quả",
+        "test",
+        "quiz",
+        "câu-tự-luận",
+        "hiệu-năng",
+        "entrance-test"
+      ],
+      "task_key": "SAPP-24247",
+      "status": "clean"
+    },
+    {
+      "type": "historical_execution",
+      "file": "historical_execution/SAPP-24395__2026-07-16.json",
+      "module": "Tạo Add-on Order",
+      "tags": [
+        "tạo-add-on-order",
+        "đồng-bộ-hubspot",
+        "đồng-bộ-deal-gốc",
+        "đồng-bộ-order-về-hubspot",
+        "checkout-thanh-toán",
+        "check-tiền-&-ghi-nhận-doanh-thu",
+        "quản-lý-transaction",
+        "quản-lý-product-version"
+      ],
+      "task_key": "SAPP-24395",
+      "status": "has-fail"
+    },
+    {
+      "type": "historical_execution",
+      "file": "historical_execution/SAPP-26276__2026-07-09.json",
+      "module": "Xác nhận thanh toán học phí",
+      "tags": [
+        "xem-danh-sách",
+        "tìm-kiếm",
+        "xác-nhận-thanh-toán-học-phí",
+        "xác-nhận-hoàn-học-phí",
+        "xem-chi-tiết",
+        "hiển-thị",
+        "e2e",
+        "permission"
+      ],
+      "task_key": "SAPP-26276",
+      "status": "clean"
+    },
+    {
+      "type": "historical_execution",
+      "file": "historical_execution/SAPP-26523__2026-07-31.json",
+      "module": "Tạo",
+      "tags": [
+        "tạo",
+        "hiển-thị",
+        "xem-chi-tiết",
+        "e2e",
+        "sửa",
+        "(unmapped)"
+      ],
+      "task_key": "SAPP-26523",
+      "status": "clean"
+    }
+  ]
 }

@@ -1,0 +1,44 @@
+{
+  "task_key": "SAPP-26523",
+  "date": "2026-07-31",
+  "phase": "phase2",
+  "unassisted_pass_rate": 1,
+  "modules": {
+    "Tạo": {
+      "total": 36,
+      "pass": 36,
+      "fail": 0,
+      "skip": 0
+    },
+    "Hiển thị": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "Xem chi tiết": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "E2E": {
+      "total": 5,
+      "pass": 5,
+      "fail": 0,
+      "skip": 0
+    },
+    "Sửa": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "(unmapped)": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    }
+  }
+}

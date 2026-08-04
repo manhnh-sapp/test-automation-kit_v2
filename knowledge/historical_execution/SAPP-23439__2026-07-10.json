@@ -1,0 +1,56 @@
+{
+  "task_key": "SAPP-23439",
+  "date": "2026-07-10",
+  "phase": "phase2",
+  "unassisted_pass_rate": 0.954,
+  "modules": {
+    "Export chấm công": {
+      "total": 44,
+      "pass": 44,
+      "fail": 0,
+      "skip": 0
+    },
+    "Tạo Timeoff Request": {
+      "total": 42,
+      "pass": 39,
+      "fail": 3,
+      "skip": 0
+    },
+    "Check trùng phiếu": {
+      "total": 10,
+      "pass": 10,
+      "fail": 0,
+      "skip": 0
+    },
+    "Sửa Timeoff Request": {
+      "total": 12,
+      "pass": 11,
+      "fail": 1,
+      "skip": 0
+    },
+    "Hủy Timeoff Request": {
+      "total": 5,
+      "pass": 5,
+      "fail": 0,
+      "skip": 0
+    },
+    "Xem danh sách": {
+      "total": 7,
+      "pass": 7,
+      "fail": 0,
+      "skip": 0
+    },
+    "Duyệt & Attendance Tracking": {
+      "total": 7,
+      "pass": 7,
+      "fail": 0,
+      "skip": 0
+    },
+    "Permission": {
+      "total": 4,
+      "pass": 2,
+      "fail": 2,
+      "skip": 0
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "task_key": "SAPP-26276",
+  "date": "2026-07-09",
+  "phase": "phase2",
+  "unassisted_pass_rate": 1,
+  "modules": {
+    "Xem danh sách": {
+      "total": 10,
+      "pass": 10,
+      "fail": 0,
+      "skip": 0
+    },
+    "Tìm kiếm": {
+      "total": 10,
+      "pass": 10,
+      "fail": 0,
+      "skip": 0
+    },
+    "Xác nhận thanh toán học phí": {
+      "total": 15,
+      "pass": 15,
+      "fail": 0,
+      "skip": 0
+    },
+    "Xác nhận hoàn học phí": {
+      "total": 15,
+      "pass": 15,
+      "fail": 0,
+      "skip": 0
+    },
+    "Xem chi tiết": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "Hiển thị": {
+      "total": 7,
+      "pass": 7,
+      "fail": 0,
+      "skip": 0
+    },
+    "E2E": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "skip": 0
+    },
+    "Permission": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    },
+    "Design compliance": {
+      "total": 10,
+      "pass": 10,
+      "fail": 0,
+      "skip": 0
+    }
+  }
+}

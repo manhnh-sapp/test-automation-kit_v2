@@ -1,0 +1,68 @@
+{
+  "task_key": "SAPP-21786",
+  "date": "2026-07-30",
+  "phase": "phase2",
+  "unassisted_pass_rate": 1,
+  "modules": {
+    "Đồng bộ tự động": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "FR2 Tính công": {
+      "total": 8,
+      "pass": 8,
+      "fail": 0,
+      "skip": 0
+    },
+    "FR1 Gộp ca": {
+      "total": 6,
+      "pass": 6,
+      "fail": 0,
+      "skip": 0
+    },
+    "FR3 Chấm công theo lớp": {
+      "total": 9,
+      "pass": 9,
+      "fail": 0,
+      "skip": 0
+    },
+    "FR4 Chấm công theo tháng": {
+      "total": 16,
+      "pass": 16,
+      "fail": 0,
+      "skip": 0
+    },
+    "Resync GV (Teacher)": {
+      "total": 23,
+      "pass": 23,
+      "fail": 0,
+      "skip": 0
+    },
+    "Re-sync theo lớp": {
+      "total": 12,
+      "pass": 12,
+      "fail": 0,
+      "skip": 0
+    },
+    "Permission": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "skip": 0
+    },
+    "Design compliance": {
+      "total": 6,
+      "pass": 6,
+      "fail": 0,
+      "skip": 0
+    },
+    "Điều chỉnh chấm công": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    }
+  }
+}

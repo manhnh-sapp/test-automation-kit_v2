@@ -1,0 +1,68 @@
+{
+  "task_key": "SAPP-13964",
+  "date": "2026-07-27",
+  "phase": "phase2",
+  "unassisted_pass_rate": 1,
+  "modules": {
+    "Khai báo tiến độ (LMS)": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "skip": 0
+    },
+    "Hiển thị (LMS)": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Sửa tiến độ (LMS)": {
+      "total": 3,
+      "pass": 3,
+      "fail": 0,
+      "skip": 0
+    },
+    "Khai báo tiến độ": {
+      "total": 22,
+      "pass": 22,
+      "fail": 0,
+      "skip": 0
+    },
+    "Hiển thị": {
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "Sửa tiến độ": {
+      "total": 9,
+      "pass": 9,
+      "fail": 0,
+      "skip": 0
+    },
+    "Cảnh báo tiến độ": {
+      "total": 11,
+      "pass": 11,
+      "fail": 0,
+      "skip": 0
+    },
+    "Logic tính tiến độ": {
+      "total": 6,
+      "pass": 6,
+      "fail": 0,
+      "skip": 0
+    },
+    "Dữ liệu BE": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    },
+    "Permission": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    }
+  }
+}

@@ -167,6 +167,33 @@ TASK_ENV=profiles/<TASK>/task.env node scripts/qa/security_check.js --catalog <.
 
 ---
 
+# learn_task.js — thu learning data sau execute (mắt xích học của kit)
+
+**Vấn đề nó giải:** `knowledge/` trống dù đã chạy nhiều task, vì 2 nguồn ghi đều không nối vào luồng thật — `metrics_collect`/`reliability_index` **chỉ được gọi trong CI job `merge-report`**, còn learning entry ở workflow Bước 9 là "Suggest-only" nên hay bị bỏ. Script này gom thành MỘT lệnh chạy được **local**, và `self_review` **chặn** nếu thiếu.
+
+```bash
+TASK_ENV=profiles/<TASK>/task.env npm run learn        # 1 task (sau mỗi lần execute)
+npm run learn:backfill                                 # BACKFILL: quét outputs/*/tasks/*/ đã chạy trước đây
+npm run learn -- --scan --dry-run                      # xem trước, không ghi gì
+npm run learn -- --task SAPP-1234 --project-out outputs/<proj> [--force]
+```
+
+Ghi 3 thứ (theo `knowledge/SCHEMA.md`):
+
+| Output | Nguồn | Ai tiêu thụ |
+|---|---|---|
+| `knowledge/metrics/{runs,tc-history}.jsonl` | `results.json` (Playwright JSON) | `reliability_index` (flaky/quarantine), dashboard KPI |
+| `knowledge/historical_execution/<TASK>__<date>.json` | `testcase-status.json` + map `tcId→Module` từ **testcase canonical** (`test-cases/*.md` \| `from-xray/*.xlsx`) | **`risk_score`** cộng `fail/total` theo module → Likelihood thật (hết cold-start); `dashboard` coverage |
+| `knowledge/index.json` | (trên) | tra cứu theo module/tag |
+
+**Quan trọng:**
+- `modules` phải là **tên module nghiệp vụ** (phần trước `/` của cột `Module`), KHÔNG phải tên file — vì `risk_score` gom theo module. TC không map được → gom vào `(unmapped)` và script **báo số lượng** để QA biết.
+- **Idempotent**: dedup snapshot theo `{task,date}` và KPI theo `{label,at}` → chạy lại/backfill nhiều lần không nhân đôi.
+- Thời điểm lấy từ artifact (`generatedAt` → fallback `mtime`), **không** lấy "bây giờ" ⇒ backfill giữ đúng trend lịch sử.
+- Verdict map: chỉ `PASSED`=pass, `FAILED`=fail; `SKIP*`/`BLOCKED_SETUP`/`TODO`=skip (không bôi đen module oan).
+
+---
+
 # seed_knowledge_from_jira.js — nạp lịch sử Jira/Xray vào knowledge (Suggest-only)
 
 Bootstrap Risk-Based Testing: kit chỉ điền `knowledge/` khi bug qua Jira gate ở Phase 2, nên dự án mới → knowledge rỗng → `risk_score` cold-start chỉ dựa **Impact** (đoán Likelihood). Script này nạp **bug đã resolved** (→ `knowledge/bugs/`, cấp `bugCount`) và **kết quả execution cũ trên Xray** (→ `knowledge/historical_execution/`, cấp `failRate`) → `risk_score` có Likelihood thật ngay từ ngày đầu. **Không sửa `risk_score`, chỉ cấp dữ liệu.**

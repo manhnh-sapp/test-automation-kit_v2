@@ -1,0 +1,56 @@
+{
+  "task_key": "SAPP-14443",
+  "date": "2026-07-23",
+  "phase": "phase2",
+  "unassisted_pass_rate": 1,
+  "modules": {
+    "Tạo": {
+      "total": 20,
+      "pass": 20,
+      "fail": 0,
+      "skip": 0
+    },
+    "Xem chi tiết": {
+      "total": 2,
+      "pass": 2,
+      "fail": 0,
+      "skip": 0
+    },
+    "Sửa": {
+      "total": 7,
+      "pass": 7,
+      "fail": 0,
+      "skip": 0
+    },
+    "Xóa": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Schedule Later (dời lịch)": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "E2E": {
+      "total": 6,
+      "pass": 6,
+      "fail": 0,
+      "skip": 0
+    },
+    "API": {
+      "total": 6,
+      "pass": 6,
+      "fail": 0,
+      "skip": 0
+    },
+    "Permission": {
+      "total": 1,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    }
+  }
+}
