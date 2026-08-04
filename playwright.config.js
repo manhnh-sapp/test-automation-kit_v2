@@ -40,6 +40,10 @@ module.exports = defineConfig({
     ['list'],
     ['html', { outputFolder: `${testResultsDir}/playwright-report`, open: 'never' }],
     ['json', { outputFile: `${testResultsDir}/results.json` }],
+    // TỰ ĐỘNG thu learning data sau mỗi run (knowledge/metrics + historical_execution) — khỏi phải
+    // nhớ gọi `npm run learn`. PHẢI đứng CUỐI: reporter chạy tuần tự, cần json ghi xong results.json
+    // trước (đã đo: globalTeardown chạy TRƯỚC json nên KHÔNG dùng được). Tắt: LEARN_AFTER_RUN=0.
+    ['./scripts/qa/learn_reporter.js'],
   ],
   use: {
     screenshot: 'only-on-failure',

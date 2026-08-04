@@ -171,8 +171,14 @@ TASK_ENV=profiles/<TASK>/task.env node scripts/qa/security_check.js --catalog <.
 
 **Vấn đề nó giải:** `knowledge/` trống dù đã chạy nhiều task, vì 2 nguồn ghi đều không nối vào luồng thật — `metrics_collect`/`reliability_index` **chỉ được gọi trong CI job `merge-report`**, còn learning entry ở workflow Bước 9 là "Suggest-only" nên hay bị bỏ. Script này gom thành MỘT lệnh chạy được **local**, và `self_review` **chặn** nếu thiếu.
 
+**TỰ ĐỘNG (không cần gọi tay):** `scripts/qa/learn_reporter.js` là Playwright reporter khai **CUỐI** danh sách `reporter` trong `playwright.config.js` → **mỗi lần `playwright test` xong là tự thu**. Tắt bằng `LEARN_AFTER_RUN=0`.
+
+> ⚠️ **Đừng đổi sang `globalTeardown`** — đã đo thật: `globalTeardown` chạy **TRƯỚC** khi reporter `json` ghi `results.json` (file chưa tồn tại → metrics trắng); chỉ reporter `onEnd` đặt sau `json` mới thấy file. Reporter tự bỏ qua khi: `LEARN_AFTER_RUN=0` · thiếu TASK context · 0 test · run bị ngắt · đang ở CI (CI thu ở job `merge-report`). Never-throw: lỗi thu học liệu không làm đỏ test run.
+
+Gọi tay khi cần (vd sau khi execute bằng script tự chế, hoặc backfill):
+
 ```bash
-TASK_ENV=profiles/<TASK>/task.env npm run learn        # 1 task (sau mỗi lần execute)
+TASK_ENV=profiles/<TASK>/task.env npm run learn        # 1 task
 npm run learn:backfill                                 # BACKFILL: quét outputs/*/tasks/*/ đã chạy trước đây
 npm run learn -- --scan --dry-run                      # xem trước, không ghi gì
 npm run learn -- --task SAPP-1234 --project-out outputs/<proj> [--force]

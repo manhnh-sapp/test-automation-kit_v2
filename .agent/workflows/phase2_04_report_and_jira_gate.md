@@ -44,7 +44,11 @@ Tạo report Phase 2 rõ ràng, không log bug sai do setup/prompt/test data, kh
    - Kết quả hiện tại.
    - Kết quả mong muốn.
 8. Evidence upload lên Jira chỉ là ảnh/video.
-9. **Thu learning data — BẮT BUỘC sau mọi lần execute** (không phải chỉ khi có bug). Chạy MỘT lệnh:
+9. **Thu learning data — BẮT BUỘC sau mọi lần execute** (không phải chỉ khi có bug).
+
+   **Mặc định TỰ ĐỘNG**: reporter `scripts/qa/learn_reporter.js` (khai cuối `reporter` trong `playwright.config.js`)
+   tự thu ngay khi `playwright test` kết thúc — không cần gọi tay. Chỉ chạy tay khi execute bằng script tự chế
+   (không qua Playwright runner), hoặc reporter bị tắt (`LEARN_AFTER_RUN=0`):
 
    ```bash
    TASK_ENV=profiles/<TASK_KEY>/task.env npm run learn
