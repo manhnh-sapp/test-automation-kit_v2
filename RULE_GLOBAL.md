@@ -236,6 +236,8 @@ Clean temporary files
 
 Trước khi kết thúc task, scan workspace root và subfolder cấp 1 để dọn file tạm/debug rõ ràng. Không xóa deliverable hoặc dữ liệu người dùng chưa được phép xóa.
 
+**Dump ad-hoc KHÔNG ghi vào repo root.** Mọi dump chẩn đoán (swagger/OpenAPI, response API, id tạm, snapshot) phải ghi vào **thư mục scratchpad của session** (hoặc `<TASK_OUTPUT_DIR>/` nếu là artifact cần giữ) — ghi ra root repo là rác lọt lưới, và các dump này thường chứa **email/SĐT/PII trong giá trị mẫu** → chỉ cần một lần `git add .` là commit lộ PII (đã xảy ra: 7 file `scratch_*` sót ở root sau task SAPP-24395).
+
 | Pattern | Meaning |
 |---|---|
 | `*_debug.txt` | Debug dump tạm. |
@@ -244,7 +246,7 @@ Trước khi kết thúc task, scan workspace root và subfolder cấp 1 để d
 | `page_snapshot.md`, `snapshot_*.md` | Browser snapshot tạm. |
 | `dom_dump.txt`, `html_dump.html` | DOM dump tạm. |
 | `network_requests.txt`, `console_log.txt` | Network/console log tạm. |
-| `scratch_*.py`, `scratch_*.js`, `scratch_*.ts` | Script nháp. |
+| `scratch_*` (MỌI đuôi: `.py/.js/.ts/.json/.txt/…`) | Script nháp **và dump ad-hoc** (swagger/API response/id tạm). |
 
 Không xóa:
 

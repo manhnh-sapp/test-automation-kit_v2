@@ -15,6 +15,11 @@
 logs/
 Log/
 
+# Dump/nháp ad-hoc (swagger, response API, id tạm) — dump PHẢI ghi vào scratchpad session,
+# KHÔNG ghi root repo. Ignore ở đây là chặn cứng: các dump này hay chứa email/SĐT trong giá trị
+# mẫu → chỉ cần một lần `git add .` là commit lộ PII. Xem RULE_GLOBAL.md §Cleanup Rules.
+scratch_*
+
 # OS generated files
 .DS_Store
 .DS_Store?
