@@ -79,6 +79,15 @@ if (statusFile && fs.existsSync(statusFile)) {
     const histDir = path.join(know, 'historical_execution');
     const hasSnap = fs.existsSync(histDir) && fs.readdirSync(histDir).some((f) => f.startsWith(`${TASK}__`));
     if (!hasSnap) problems.push(`Thiếu knowledge/historical_execution/${TASK}__<date>.json (snapshot pass/fail theo module — input cho risk_score + dashboard)`);
+    // KPI chỉ đòi khi task THỰC SỰ có results.json (execute qua Playwright runner). Task chạy bằng
+    // script tự chế không sinh results.json → đòi KPI là CHẶN OAN (đã gặp: SAPP-23439).
+    const trDir = path.join(path.dirname(statusFile));
+    let hasResults = fs.existsSync(path.join(trDir, 'results.json'));
+    if (!hasResults && fs.existsSync(trDir)) {
+      hasResults = fs.readdirSync(trDir).some((d) => {
+        try { return fs.statSync(path.join(trDir, d)).isDirectory() && fs.existsSync(path.join(trDir, d, 'results.json')); } catch (e) { return false; }
+      });
+    }
     const runsFile = path.join(know, 'metrics', 'runs.jsonl');
     let hasKpi = false;
     if (fs.existsSync(runsFile)) {
@@ -86,9 +95,22 @@ if (statusFile && fs.existsSync(statusFile)) {
         try { return String(JSON.parse(line).label || '').split('/')[0] === TASK; } catch (e) { return false; }
       });
     }
-    if (!hasKpi) problems.push(`Thiếu KPI cho ${TASK} trong knowledge/metrics/runs.jsonl (nguồn cho reliability/flaky)`);
+    if (hasResults && !hasKpi) problems.push(`Thiếu KPI cho ${TASK} trong knowledge/metrics/runs.jsonl (có results.json mà chưa thu — chạy \`npm run learn\`)`);
     if (problems.length) problems.push('→ Chạy: `TASK_ENV=profiles/<TASK>/task.env npm run learn` (idempotent, chạy lại không nhân đôi).');
-    results.push(engine.toResult('learning data (knowledge/)', { problems, note: problems.length ? 'learning loop ĐỨT — task chạy xong nhưng không học được gì' : 'đã tích luỹ snapshot + KPI', severity: engine.SEVERITY.P1 }));
+
+    // Có case FAILED nhưng knowledge/bugs chưa có entry nào của task → nhiều khả năng quên `learn:bugs`.
+    // Chỉ CẢNH BÁO (không chặn): FAILED có thể là setup/flaky — loại đó KHÔNG được ghi vào knowledge.
+    const warnings = [];
+    try {
+      const doc = JSON.parse(fs.readFileSync(statusFile, 'utf8'));
+      const tests = Array.isArray(doc.tests) ? doc.tests : Object.values(doc.tests || {});
+      const failed = tests.filter((t) => /^FAIL/i.test(String(t.status || ''))).length;
+      const bugsDir = path.join(know, 'bugs');
+      const hasBug = fs.existsSync(bugsDir) && fs.readdirSync(bugsDir).some((f) => f.startsWith(`${TASK}__`));
+      if (failed && !hasBug) warnings.push(`${failed} case FAILED nhưng knowledge/bugs chưa có entry của ${TASK} — nếu đã log bug Jira, chạy \`npm run learn:bugs:apply\` để risk_score có bugCount (bỏ qua nếu FAILED là setup/flaky, loại đó KHÔNG ghi vào knowledge).`);
+    } catch (e) { /* đã báo ở check execution output */ }
+
+    results.push(engine.toResult('learning data (knowledge/)', { problems, warnings, note: problems.length ? 'learning loop ĐỨT — task chạy xong nhưng không học được gì' : 'đã tích luỹ snapshot + KPI', severity: engine.SEVERITY.P1 }));
   }
 }
 

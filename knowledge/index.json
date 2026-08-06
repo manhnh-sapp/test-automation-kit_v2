@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-08-04",
+  "updated_at": "2026-08-06",
   "entries": [
     {
       "type": "historical_execution",
@@ -150,6 +150,83 @@
       ],
       "task_key": "SAPP-26523",
       "status": "clean"
+    },
+    {
+      "type": "bug",
+      "file": "bugs/SAPP-23439__fe-nhap-check-out-check-in-fe-am-tham-ao-thay-vi.json",
+      "module": "Tạo Timeoff Request",
+      "tags": [
+        "fe",
+        "tạo-timeoff-request"
+      ],
+      "task_key": "SAPP-23439",
+      "status": "Done"
+    },
+    {
+      "type": "bug",
+      "file": "bugs/SAPP-23439__be-api-cho-tao-phieu-check-in-check-out-thoi-luo.json",
+      "module": "Tạo Timeoff Request",
+      "tags": [
+        "be",
+        "tạo-timeoff-request"
+      ],
+      "task_key": "SAPP-23439",
+      "status": "Done"
+    },
+    {
+      "type": "bug",
+      "file": "bugs/SAPP-23439__be-api-sua-phieu-khong-validate-check-in-check-o.json",
+      "module": "Sửa Timeoff Request",
+      "tags": [
+        "be",
+        "sửa-timeoff-request"
+      ],
+      "task_key": "SAPP-23439",
+      "status": "Done"
+    },
+    {
+      "type": "bug",
+      "file": "bugs/SAPP-23439__be-api-tao-phieu-khong-validate-check-in-check-o.json",
+      "module": "Tạo Timeoff Request",
+      "tags": [
+        "be",
+        "tạo-timeoff-request"
+      ],
+      "task_key": "SAPP-23439",
+      "status": "Done"
+    },
+    {
+      "type": "bug",
+      "file": "bugs/SAPP-23439__be-user-khong-phai-approver-uoc-gan-van-duyet-uo.json",
+      "module": "Permission",
+      "tags": [
+        "be",
+        "permission"
+      ],
+      "task_key": "SAPP-23439",
+      "status": "Done"
+    },
+    {
+      "type": "bug",
+      "file": "bugs/SAPP-23439__be-account-role-bi-gioi-han-quyen-van-tao-uoc-ph.json",
+      "module": "Permission",
+      "tags": [
+        "be",
+        "permission"
+      ],
+      "task_key": "SAPP-23439",
+      "status": "Done"
+    },
+    {
+      "type": "bug",
+      "file": "bugs/SAPP-23439__be-account-role-bi-gioi-han-quyen-van-export-uoc.json",
+      "module": "Export chấm công",
+      "tags": [
+        "be",
+        "export-chấm-công"
+      ],
+      "task_key": "SAPP-23439",
+      "status": "Done"
     }
   ]
 }

@@ -1,0 +1,15 @@
+{
+  "id": "SAPP-25472",
+  "bug": "[BE] Account role bị giới hạn quyền vẫn TẠO được phiếu Timeoff",
+  "module": "Permission",
+  "tags": [
+    "be",
+    "permission"
+  ],
+  "task_key": "SAPP-23439",
+  "detected_phase": "phase2",
+  "confirmed_via_gate": true,
+  "jira_status": "Done",
+  "created_at": "2026-06-25",
+  "tc_id": "OPS_ATTND_TC_131"
+}

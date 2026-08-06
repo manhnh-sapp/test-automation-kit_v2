@@ -65,10 +65,15 @@ function walk(suites, file) {
       for (const t of spec.tests || []) {
         const results = t.results || [];
         const final = results[results.length - 1] || {};
-        const status = final.status || 'unknown';
+        // `results` RỖNG khi test bị skip → phải fallback `t.status` (nếu không sẽ ra "unknown" hàng loạt,
+        // làm hỏng tín hiệu reliability/risk). Đã gặp thật: 15/26 record là unknown trước khi sửa.
+        const status = final.status || t.status || 'unknown';
         const retries = Math.max(0, results.length - 1);
         const isFlaky = retries > 0 && status === 'passed';
-        tcRecs.push({ at, label, key: `${f}::${spec.title}`, file: f, title: spec.title, status, retries, flaky: isFlaky });
+        // Chuẩn hoá path về repo-relative (Playwright trả path tương đối testDir) để downstream
+        // (select_tests, dashboard) map được sang file thật trong repo.
+        const fileRel = f && !f.startsWith('tests/') && /\.spec\.[jt]s$/.test(f) ? `tests/${f}` : f;
+        tcRecs.push({ at, label, key: `${fileRel}::${spec.title}`, file: fileRel, title: spec.title, status, retries, flaky: isFlaky });
       }
     }
     if (s.suites) walk(s.suites, f);

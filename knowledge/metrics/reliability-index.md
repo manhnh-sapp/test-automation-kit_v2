@@ -1,6 +1,6 @@
 # Test Reliability Index (TRI) — F10
 
-> 2026-08-04 13:06:52 · 21 test · quarantine 0 · minRuns=3 flakyTh=0.1
+> 2026-08-06 04:43:50 · 21 test · quarantine 0 · minRuns=3 flakyTh=0.1
 > TRI (Clean Reliability) = pass sạch/tổng · Eventual = (clean+flaky)/tổng · Flaky = flaky/tổng.
 > Rank theo TRI: S≥0.99 A≥0.97 B≥0.90 C≥0.75 D<0.75 (NEW = chưa đủ run).
 

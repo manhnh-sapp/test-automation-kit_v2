@@ -1,0 +1,15 @@
+{
+  "id": "SAPP-25473",
+  "bug": "[BE] User không phải Approver được gán vẫn duyệt được phiếu (PUT status APPROVED → 200)",
+  "module": "Permission",
+  "tags": [
+    "be",
+    "permission"
+  ],
+  "task_key": "SAPP-23439",
+  "detected_phase": "phase2",
+  "confirmed_via_gate": true,
+  "jira_status": "Done",
+  "created_at": "2026-06-25",
+  "tc_id": "OPS_ATTND_TC_130"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "SAPP-25476",
+  "bug": "[BE] API cho tạo phiếu Check-in == Check-out (thời lượng 0 phút) không kiểm tra",
+  "module": "Tạo Timeoff Request",
+  "tags": [
+    "be",
+    "tạo-timeoff-request"
+  ],
+  "task_key": "SAPP-23439",
+  "detected_phase": "phase2",
+  "confirmed_via_gate": true,
+  "jira_status": "Done",
+  "created_at": "2026-06-25",
+  "tc_id": "OPS_ATTND_TC_063"
+}

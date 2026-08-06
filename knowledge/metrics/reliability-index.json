@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-04 13:06:52",
+  "generatedAt": "2026-08-06 04:43:50",
   "minRuns": 3,
   "flakyThreshold": 0.1,
   "tests": [
     {
-      "key": "api/product-orders-list.spec.ts::GET /product-orders trả 2xx + JSON list (BE health, non-destructive)",
-      "file": "api/product-orders-list.spec.ts",
+      "key": "tests/api/product-orders-list.spec.ts::GET /product-orders trả 2xx + JSON list (BE health, non-destructive)",
+      "file": "tests/api/product-orders-list.spec.ts",
       "title": "GET /product-orders trả 2xx + JSON list (BE health, non-destructive)",
       "runs": 2,
       "tri": 0,
@@ -16,8 +16,8 @@
       "lastAt": "2026-07-31T11:14:25.805Z"
     },
     {
-      "key": "fe/order/order-amount.spec.ts::Total Amount Due = Net − Paid + Payback (bất biến, non-destructive)",
-      "file": "fe/order/order-amount.spec.ts",
+      "key": "tests/fe/order/order-amount.spec.ts::Total Amount Due = Net − Paid + Payback (bất biến, non-destructive)",
+      "file": "tests/fe/order/order-amount.spec.ts",
       "title": "Total Amount Due = Net − Paid + Payback (bất biến, non-destructive)",
       "runs": 2,
       "tri": 0,
@@ -28,8 +28,8 @@
       "lastAt": "2026-07-31T11:14:25.805Z"
     },
     {
-      "key": "fe/transaction/transaction-list.spec.ts::Transaction list load được, grid render, không 5xx (read-only)",
-      "file": "fe/transaction/transaction-list.spec.ts",
+      "key": "tests/fe/transaction/transaction-list.spec.ts::Transaction list load được, grid render, không 5xx (read-only)",
+      "file": "tests/fe/transaction/transaction-list.spec.ts",
       "title": "Transaction list load được, grid render, không 5xx (read-only)",
       "runs": 2,
       "tri": 0,
@@ -40,8 +40,8 @@
       "lastAt": "2026-07-31T11:14:25.805Z"
     },
     {
-      "key": "support/setup/db/db2db3.connect.spec.ts::check connect DB2 + DB3 + snapshot",
-      "file": "support/setup/db/db2db3.connect.spec.ts",
+      "key": "tests/support/setup/db/db2db3.connect.spec.ts::check connect DB2 + DB3 + snapshot",
+      "file": "tests/support/setup/db/db2db3.connect.spec.ts",
       "title": "check connect DB2 + DB3 + snapshot",
       "runs": 1,
       "tri": 0,
@@ -52,8 +52,8 @@
       "lastAt": "2026-07-23T03:44:24.619Z"
     },
     {
-      "key": "support/setup/db/verify.db2db3.spec.ts::verify SAPP-14127 DB2(before) → DB3(after)",
-      "file": "support/setup/db/verify.db2db3.spec.ts",
+      "key": "tests/support/setup/db/verify.db2db3.spec.ts::verify SAPP-14127 DB2(before) → DB3(after)",
+      "file": "tests/support/setup/db/verify.db2db3.spec.ts",
       "title": "verify SAPP-14127 DB2(before) → DB3(after)",
       "runs": 1,
       "tri": 0,
@@ -184,8 +184,8 @@
       "lastAt": "2026-08-03T04:28:25.263Z"
     },
     {
-      "key": "fe/auth/auth-evidence.smoke.spec.ts::login+cache rồi reuse (không login lại); EvidenceRecorder highlight capture",
-      "file": "fe/auth/auth-evidence.smoke.spec.ts",
+      "key": "tests/fe/auth/auth-evidence.smoke.spec.ts::login+cache rồi reuse (không login lại); EvidenceRecorder highlight capture",
+      "file": "tests/fe/auth/auth-evidence.smoke.spec.ts",
       "title": "login+cache rồi reuse (không login lại); EvidenceRecorder highlight capture",
       "runs": 1,
       "tri": 0,
@@ -196,8 +196,8 @@
       "lastAt": "2026-07-31T11:14:25.805Z"
     },
     {
-      "key": "fe/auth/lms-token-broker.smoke.spec.ts::login LMS (Keycloak) → token tươi (capture) + brokerRequest API thật 2xx",
-      "file": "fe/auth/lms-token-broker.smoke.spec.ts",
+      "key": "tests/fe/auth/lms-token-broker.smoke.spec.ts::login LMS (Keycloak) → token tươi (capture) + brokerRequest API thật 2xx",
+      "file": "tests/fe/auth/lms-token-broker.smoke.spec.ts",
       "title": "login LMS (Keycloak) → token tươi (capture) + brokerRequest API thật 2xx",
       "runs": 1,
       "tri": 0,
@@ -208,8 +208,8 @@
       "lastAt": "2026-07-31T11:14:25.805Z"
     },
     {
-      "key": "fe/order/order-list.spec.ts::Orders list load được, grid render, không 5xx (read-only)",
-      "file": "fe/order/order-list.spec.ts",
+      "key": "tests/fe/order/order-list.spec.ts::Orders list load được, grid render, không 5xx (read-only)",
+      "file": "tests/fe/order/order-list.spec.ts",
       "title": "Orders list load được, grid render, không 5xx (read-only)",
       "runs": 1,
       "tri": 0,
@@ -220,8 +220,8 @@
       "lastAt": "2026-07-31T11:14:25.805Z"
     },
     {
-      "key": "mobile-web/example.mobile.spec.ts::touch target đủ lớn + tap mở hamburger",
-      "file": "mobile-web/example.mobile.spec.ts",
+      "key": "tests/mobile-web/example.mobile.spec.ts::touch target đủ lớn + tap mở hamburger",
+      "file": "tests/mobile-web/example.mobile.spec.ts",
       "title": "touch target đủ lớn + tap mở hamburger",
       "runs": 2,
       "tri": 0,
@@ -232,8 +232,8 @@
       "lastAt": "2026-07-21T07:14:08.925Z"
     },
     {
-      "key": "mobile-web/example.mobile.spec.ts::offline giữa chừng → báo lỗi, không crash",
-      "file": "mobile-web/example.mobile.spec.ts",
+      "key": "tests/mobile-web/example.mobile.spec.ts::offline giữa chừng → báo lỗi, không crash",
+      "file": "tests/mobile-web/example.mobile.spec.ts",
       "title": "offline giữa chừng → báo lỗi, không crash",
       "runs": 2,
       "tri": 0,
@@ -244,8 +244,8 @@
       "lastAt": "2026-07-21T07:14:08.925Z"
     },
     {
-      "key": "mobile-web/SAPP-22827/_manual.bisect.spec.ts::BUOC-1 BISECT — tu tay tick roi Resume",
-      "file": "mobile-web/SAPP-22827/_manual.bisect.spec.ts",
+      "key": "tests/mobile-web/SAPP-22827/_manual.bisect.spec.ts::BUOC-1 BISECT — tu tay tick roi Resume",
+      "file": "tests/mobile-web/SAPP-22827/_manual.bisect.spec.ts",
       "title": "BUOC-1 BISECT — tu tay tick roi Resume",
       "runs": 1,
       "tri": 1,

@@ -226,4 +226,7 @@ function main() {
   if (!DRY && (nMetrics || snaps.length)) console.log('[learn] Kế tiếp: `npm run risk` (Likelihood từ fail thật) · `npm run reliability` · `npm run dashboard`.');
 }
 
-main();
+if (require.main === module) main();
+
+// Export helper để script khác tái dùng (vd learn_bugs.js cần map tcId→module y hệt).
+module.exports = { buildModuleMap, readJson, bucket, findResults, KNOW, HIST_DIR };

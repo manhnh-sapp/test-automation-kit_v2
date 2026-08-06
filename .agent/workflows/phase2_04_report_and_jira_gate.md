@@ -63,7 +63,16 @@ Tạo report Phase 2 rõ ràng, không log bug sai do setup/prompt/test data, kh
 
    `self_review` CHẶN nếu đã execute mà thiếu snapshot/KPI của task (learning loop đứt).
 
-9b. Ghi Knowledge Entry (skill `learning_recorder`, Suggest-only) — **chỉ cho bug đã qua gate ở Bước 4**:
+9b. **Sau khi log bug Jira (Bước 4)** — nạp bug vào knowledge để `risk_score` có `bugCount`:
+
+   ```bash
+   TASK_ENV=profiles/<TASK_KEY>/task.env npm run learn:bugs:apply
+   ```
+
+   Lấy bug **từ Jira** theo label `auto-bug` + story ⇒ chỉ học bug đã qua gate; idempotent (chạy lại chỉ
+   đồng bộ `jira_status`). `self_review` cảnh báo nếu có case FAILED mà `knowledge/bugs/` chưa có entry.
+
+9c. Ghi Knowledge Entry (skill `learning_recorder`, Suggest-only) — **chỉ cho bug đã qua gate ở Bước 4**:
    - Với mỗi bug đã qua gate (đã loại flaky/setup/data/prompt), ghi `knowledge/bugs/<TASK_KEY>__<slug>.json`; nếu đã xác định root cause thì ghi/nối `knowledge/root_causes/<slug>.json` (link 2 chiều).
    - Ghi snapshot pass/fail theo module vào `knowledge/historical_execution/<TASK_KEY>__<date>.json` (lấy số liệu từ execution summary, gồm unassisted pass rate).
    - Cập nhật `knowledge/index.json`.

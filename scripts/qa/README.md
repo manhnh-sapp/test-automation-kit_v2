@@ -200,6 +200,24 @@ Ghi 3 thứ (theo `knowledge/SCHEMA.md`):
 
 ---
 
+# learn_bugs.js — bug đã log Jira → knowledge/bugs (khép nốt vòng học)
+
+`learn_task.js` cấp **failRate** theo module, nhưng `risk_score` còn cần **bugCount** — vốn chỉ được ghi khi agent nhớ chạy skill `learning_recorder` (Suggest-only) ⇒ thực tế luôn `knowledge/bugs/` rỗng. Script này lấy bug **từ chính Jira** nên không phụ thuộc trí nhớ agent, và **KHÔNG cần sửa `bug_reporter.js`**.
+
+```bash
+TASK_ENV=profiles/<TASK>/task.env npm run learn:bugs          # DRY-RUN (mặc định, chỉ in)
+TASK_ENV=profiles/<TASK>/task.env npm run learn:bugs:apply    # ghi thật vào knowledge/bugs + index
+[--story <JIRA_STORY_KEY>] [--project SAPP] [--max 100]
+```
+
+- **Nguồn canonical**: bug do kit tạo luôn có label `auto-bug` + label `<tcId>`, là sub-task của story ⇒ JQL đúng bộ đó **chỉ học bug ĐÃ QUA GATE** (không dính flaky/setup — đúng `knowledge/SCHEMA.md`).
+- **Module** suy từ `tcId → cột Module` của testcase canonical (dùng chung map với `learn_task.js`).
+- **Idempotent**: đã có file thì chỉ **đồng bộ `jira_status`** (rerun chuyển Done → cập nhật), không tạo trùng.
+- Nghiệm thu: SAPP-23439 → 7 bug thật, module map đúng (`Tạo Timeoff Request`, `Permission`, `Export chấm công`); `risk_score` từ `0 bug` → **`7 bug, 9 snapshot`**, module *Tạo Timeoff Request* lên **Medium** nhờ 3 bug.
+- `self_review` **cảnh báo** khi có case FAILED mà `knowledge/bugs/` chưa có entry của task.
+
+---
+
 # seed_knowledge_from_jira.js — nạp lịch sử Jira/Xray vào knowledge (Suggest-only)
 
 Bootstrap Risk-Based Testing: kit chỉ điền `knowledge/` khi bug qua Jira gate ở Phase 2, nên dự án mới → knowledge rỗng → `risk_score` cold-start chỉ dựa **Impact** (đoán Likelihood). Script này nạp **bug đã resolved** (→ `knowledge/bugs/`, cấp `bugCount`) và **kết quả execution cũ trên Xray** (→ `knowledge/historical_execution/`, cấp `failRate`) → `risk_score` có Likelihood thật ngay từ ngày đầu. **Không sửa `risk_score`, chỉ cấp dữ liệu.**

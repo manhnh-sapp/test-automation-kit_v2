@@ -1,0 +1,15 @@
+{
+  "id": "SAPP-25471",
+  "bug": "[BE] Account role bị giới hạn quyền vẫn EXPORT được dữ liệu chấm công",
+  "module": "Export chấm công",
+  "tags": [
+    "be",
+    "export-chấm-công"
+  ],
+  "task_key": "SAPP-23439",
+  "detected_phase": "phase2",
+  "confirmed_via_gate": true,
+  "jira_status": "Done",
+  "created_at": "2026-06-25",
+  "tc_id": "OPS_ATTND_TC_041"
+}
