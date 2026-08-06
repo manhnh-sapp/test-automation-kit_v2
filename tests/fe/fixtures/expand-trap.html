@@ -1,0 +1,35 @@
+<!doctype html><meta charset="utf-8">
+<style>
+ body{font:14px system-ui;margin:24px} .card{border:1px solid #ddd;border-radius:8px;padding:12px;margin:10px 0}
+ .row{display:flex;justify-content:space-between;align-items:center}
+ .icons *{margin-left:10px;cursor:pointer;color:#888;border:0;background:none;font:inherit}
+ .body{display:none;padding:10px;border-top:1px dashed #ccc;margin-top:8px}
+ .ant-select-dropdown{position:fixed;top:120px;left:40px;background:#fff;border:1px solid #aaa;padding:10px}
+ .ant-modal{position:fixed;top:100px;left:240px;background:#fff;border:1px solid #999;padding:20px}
+ .hidden{display:none}
+</style>
+<div id="wrap">
+  <div class="card" id="product">
+    <!-- Header row: TOGGLE thật nằm GIỮA; icon CUỐI là shortcut Add-on (mở dropdown);
+         button ĐẦU TIÊN trong row là promo (mở modal) → bẫy đúng cả 2 cách cũ -->
+    <div class="row"><span>Product</span>
+      <span class="icons">
+        <button id="promo-btn" class="anticon icon-promo">%</button>   <!-- button ĐẦU → mở MODAL (sai) -->
+        <i id="prod-toggle" class="anticon chevron">▾</i>              <!-- TOGGLE THẬT (không phải button) -->
+        <i id="addon-caret" class="anticon arrow">▾</i>                <!-- icon CUỐI → mở DROPDOWN (sai) -->
+      </span></div>
+    <div class="body" id="prod-body"><span>Add Product</span></div>
+  </div>
+  <div class="card" id="promo"><div class="row"><span>Promotion Code</span><span class="icons"><i class="anticon arrow">▾</i></span></div></div>
+  <div class="card" id="addon"><div class="row"><span>Add-on Course</span><span class="icons"><i class="anticon arrow">▾</i></span></div></div>
+</div>
+
+<div id="dd" class="ant-select-dropdown hidden">Add-on Course dropdown (SAI)</div>
+<div id="md" class="ant-modal hidden">Promotion Code modal (SAI)</div>
+
+<script>
+ document.getElementById('prod-toggle').onclick = () => { const b = document.getElementById('prod-body'); b.style.display = b.style.display === 'block' ? 'none' : 'block'; };
+ document.getElementById('addon-caret').onclick = () => document.getElementById('dd').classList.remove('hidden');
+ document.getElementById('promo-btn').onclick   = () => document.getElementById('md').classList.remove('hidden');
+ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { document.getElementById('dd').classList.add('hidden'); document.getElementById('md').classList.add('hidden'); } });
+</script>
