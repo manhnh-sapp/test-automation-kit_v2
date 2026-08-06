@@ -1161,8 +1161,21 @@ Ngoài Main Flow (Phase 1 → 2 → Re-run), kit có nhóm năng lực **chạy 
 ![Sơ đồ năng lực nâng cao](docs/user-guide-images/advanced-capabilities.png)
 
 ### 12.1 Learning loop + Risk-Based Testing
-- **Knowledge Base** (`knowledge/`): sau mỗi task, `learning_recorder` ghi bug đã qua gate + root cause + snapshot pass/fail. Đây là bộ nhớ học, dùng lại xuyên task (live khởi tạo rỗng; `knowledge/examples/` là mẫu).
-- **Risk Scorer** (`npm run risk`): chấm `Risk = Likelihood × Impact` mỗi module từ `knowledge/` + `.agent/config/risk_model.json` → `reports/risk-register.{md,json}`. Cold-start (chưa có data) → band do **Impact** dẫn; QA **override band** nếu không đồng ý. `npm run risk:gate` (cảnh báo) / `risk:gate:enforce` (chặn CI khi module High thiếu độ sâu).
+
+**Thu học liệu giờ TỰ ĐỘNG** (trước đây phụ thuộc agent nhớ chạy skill nên `knowledge/` hay rỗng):
+
+| Bước | Cơ chế | Ghi vào |
+|---|---|---|
+| Sau **mỗi** `playwright test` | reporter `learn_reporter` chạy tự động (tắt: `LEARN_AFTER_RUN=0`) | `knowledge/metrics/{runs,tc-history}.jsonl` + `historical_execution/<TASK>__<date>.json` |
+| Execute bằng script tự chế (không qua runner) | chạy tay `TASK_ENV=… npm run learn` | như trên |
+| Task cũ đã chạy trước đây | `npm run learn:backfill` (idempotent) | như trên |
+| **Sau khi log bug Jira** | `TASK_ENV=… npm run learn:bugs:apply` — lấy bug từ Jira theo label `auto-bug` | `knowledge/bugs/` + `index.json` |
+
+`self_review` **chặn** nếu execute xong mà chưa có snapshot/KPI, và **cảnh báo** khi có case FAILED mà `knowledge/bugs/` chưa có entry.
+
+- **Knowledge Base** (`knowledge/`): bộ nhớ học dùng lại xuyên task — chỉ ghi **fact đã qua gate** (bug phải qua Jira gate), không PII/secret, JSON thuần tra theo module/tag (live khởi tạo rỗng; `knowledge/examples/` là mẫu).
+- **Risk Scorer** (`npm run risk`): chấm `Risk = Likelihood × Impact` mỗi module từ `knowledge/` + `.agent/config/risk_model.json` → `reports/risk-register.{md,json}`. **Likelihood = bugCount (từ `knowledge/bugs/`) + failRate (từ `historical_execution/`)** — thiếu bước 12.1 ở trên thì Likelihood mãi bằng 0 và band chỉ do Impact dẫn (cold-start). QA **override band** nếu không đồng ý. `npm run risk:gate` (cảnh báo) / `risk:gate:enforce` (chặn CI khi module High thiếu độ sâu).
+- **Test selection theo risk** (`npm run select:tests`): xếp hạng file hay fail/flaky từ `tc-history`; `--include-risky <N>` kéo thêm file rủi ro dù diff không đụng, `--risk-first` chạy chúng trước, cảnh báo test đang **quarantine**.
 - **Git Impact Analyzer**: đọc git diff → bề mặt dùng chung, làm input cho Change Impact (mục 17 gen testcase).
 
 ### 12.2 Human checkpoint — Ambiguity Gate
@@ -1175,7 +1188,9 @@ Phase 1 **chặn sinh testcase** khi requirement mơ hồ mức Critical/High: x
 | Performance Loại A (single-user) | `npm run perf -- --catalog <perf_catalog.json>` | threshold-gated; verdict **advisory** (median N lần, UAT nhiễu) |
 | Security basic | `npm run security -- --catalog <security_catalog.json> --confirm-nonprod` | **GET/read-only, non-prod, mask PII**; fuzzing/ZAP là Manual-only |
 | Load Loại B (nhiều VU) | `npm run load -- --script tests/load/example.load.js --confirm-nonprod --docker` | k6 (binary ngoài/Docker), **non-prod, cap**; thiếu k6 → skip sạch |
+| **Điểm Lighthouse** (Perf/A11y/SEO/Best-practices) | `npm run lighthouse -- --catalog <lighthouse_catalog.json> --confirm-nonprod` | **opt-in nặng**: cần `npm i -D playwright-lighthouse lighthouse`, thiếu → skip sạch. Chạy qua CDP; verdict **advisory** theo dải chuẩn (≥90/50–89/<50); evidence = ảnh bảng điểm |
 | Mobile-web | `npm run test:mobile-web` | device emulation thật (iPhone 13 / Pixel 7) |
+| **Cross-browser** (Firefox/WebKit) | `CROSS_BROWSER=1 npx playwright test --project=firefox-desktop --project=webkit-desktop` | **làn riêng** (project = nhân bản suite): PR chỉ chromium, cross-browser chạy nightly/manual. CI: job `cross-browser` (manual). WebKit ≠ Safari thật (thiếu ITP/HLS/Apple Pay) |
 
 Ngưỡng perf/load lấy từ **NFR/SLA** (không bịa số). Perf Loại A = single-user; Load Loại B = tải nhiều VU (k6, KHÔNG dùng Playwright).
 
@@ -1184,5 +1199,7 @@ Ngưỡng perf/load lấy từ **NFR/SLA** (không bịa số). Perf Loại A = 
 - **Manual QUICK** (`prompt_templates/phase1/05_manual_quick.md`): sinh nhanh testcase chạy tay (có cột thực thi) khi requirement đã rõ.
 - **Combinatorial/Pairwise** (`prompt_templates/phase1/06_cross_module.md`): ma trận tổ hợp nhiều biến — mặc định Pairwise + constraints (chống nổ case).
 - **Dashboard** (`npm run dashboard`): tổng hợp coverage/risk/flaky/non-functional theo **SAPP Academy Design System** → `reports/dashboard.html`.
+- **Token Broker** (`tests/fe/support/auth/tokenBroker.ts`): giữ 1 phiên SPA đã login sống rồi lấy **token tươi** mỗi lần gọi API (401/403 → tự refresh → retry). ⇒ **không phải F12 dán token giữa chừng**, `task.env` chỉ cần user/password. Dùng cho cả OPS lẫn LMS.
+- **`ensureExpanded`** (`scripts/utils/ui/ensure_expanded.js`): mở panel/accordion trên DOM "nhiều icon giống nhau" — thử ứng viên rồi **nghiệm thu bằng sentinel**, tự Escape khi click nhầm modal/dropdown, idempotent. Dùng thay cho click toạ độ chevron (nguồn flaky kinh điển).
 
 > Locator Healing (Phase 2, threshold-gated, opt-in `LOCATOR_HEAL=1`): chỉ heal locator ACTION khi confidence cao, KHÔNG heal locator assertion (chống false PASS).
