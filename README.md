@@ -116,7 +116,8 @@ test-automation-kit/
 
 | Component | Purpose |
 |---|---|
-| [USER_GUIDE.md](USER_GUIDE.md) | Hướng dẫn sử dụng Test Automation Kit cho Team QA. |
+| [USER_GUIDE.md](USER_GUIDE.md) | Hướng dẫn sử dụng Test Automation Kit cho Team QA. Bản Confluence: *User Guide_QA Workflow w AI* (space LMS) — đẩy bằng `CONFLUENCE_PAGE_ID=<id> node scripts/integrations/jira/publish_confluence_page.js [--dry-run]`. |
+| [CHANGELOG.md](CHANGELOG.md) | Lịch sử thay đổi **kit dùng chung** theo ngày + chủ đề (vấn đề → cách chữa), kèm commit hash. Đọc trước khi nâng cấp kit hoặc khi thấy hành vi lạ sau khi pull. |
 | [QUICKSTART.md](QUICKSTART.md) | Onboarding nhanh cho project mới. |
 | [RULE_GLOBAL.md](RULE_GLOBAL.md) | Quy tắc chung về ngôn ngữ, bảo mật, output và cleanup. |
 | `.agent/workflows/` | Workflow chính dạng flat: mỗi flow gồm 1 file entry (`phase1_generate_tc.md`, `phase2_execute.md`, `rerun.md`) và các step file `*_NN_*.md` cùng thư mục. Step đánh số reset theo từng flow (phase1_01..04, phase2_01..04, rerun_01..03). |
